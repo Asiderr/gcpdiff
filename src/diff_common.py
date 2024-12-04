@@ -3,6 +3,12 @@ import argparse
 import logging
 import subprocess
 
+BOLD = "\033[1m"
+RED = "\033[31m"
+GREEN = "\033[32m"
+BLUE = "\033[34m"
+ENDC = '\033[0m'
+
 class DiffCommon:
     def diff_cmdline(self):
         """
@@ -18,13 +24,19 @@ class DiffCommon:
             "-v",
             "--verbose",
             action="store_true",
-            help="Increase logs verbosity level",
+            help="Increase logs verbosity level"
         )
         parser.add_argument(
             "-c",
             "--component",
             help="Terraform component that will be compared with GCP API",
             required=True
+        )
+        parser.add_argument(
+            "-s",
+            "--save_file",
+            action="store_true",
+            help="Save API and Terraform component schemas as a JSON files"
         )
         return parser
 

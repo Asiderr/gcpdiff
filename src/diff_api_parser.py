@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 
-import subprocess
-import diff_common
 import json
 import jsonref
 import requests
+import time
 
 from diff_config import DISCOVERY_DOC_URL
 
 class DiffApiParser:
     def get_api_schemas(self):
-        if not self.log:
+        if not hasattr(self, 'log'):
             print("Error: Logger not found!")
             return False
 
         self.log.debug(
-            f"Trying to dump discovery doc from: {DISCOVERY_DOC_URL}"
+            f"Trying to get discovery doc from: {DISCOVERY_DOC_URL}"
         )
         discovery_response = requests.get(DISCOVERY_DOC_URL)
         try:
@@ -45,16 +44,72 @@ class DiffApiParser:
 
         return True
 
-    def get_component_schema(self, component):
-        if not self.log:
+    def get_api_component_schema(self, component, save_file=False):
+        if not hasattr(self, 'log'):
             print("Error: Logger not found!")
             return False
 
-        self.log.debug(f"Getting {component} schema")
-        self.component_schema = self._api_schemas.get(component, {})
-        if not self.component_schema:
-            self.log.error("The specified component not found in the schema.")
+        if not self.get_api_schemas():
+            self.log.error("Cannot get GCP API schemas!")
             return False
 
-        self.log.debug(self.component_schema)
+        self.log.debug(f"Getting {component} schema")
+        self.component_api_schema = self._api_schemas.get(
+            component.capitalize(), {}
+        )
+        if not self.component_api_schema:
+            self.log.error("The specified component not found in the schema!")
+            return False
+
+        if save_file:
+            file_name = f"{component}_api_schema_{time.time()}.json"
+            self.log.debug(
+                f"Saving {component} schema to json file {file_name}"
+            )
+            with open(file_name, "w") as f:
+                json.dump(self.component_api_schema, f, indent=2)
+        return True
+
+    def get_api_field(self, key_origin, value_origin):
+        nested = False
+        key_appendix = ''
+        if key_origin != '':
+            key_appendix = key_origin + '.'
+
+        try:
+            for key, value in value_origin["properties"].items():
+                self.get_api_field(key_appendix+key, value)
+            nested = True
+        except KeyError:
+            pass
+
+        try:
+            for key, value in value_origin["items"]["properties"].items():
+                self.get_api_field(key_appendix+key, value)
+            nested = True
+        except KeyError:
+            pass
+
+        if not nested:
+            self.api_field_list.append(key_origin)
+
+
+    def get_api_fields(self):
+        """
+        """
+        if not hasattr(self, 'log'):
+            print("Error: Logger not found!")
+            return False
+
+        if not hasattr(self, 'component_api_schema'):
+            self.log.error("API component schema not found!")
+            return False
+
+        self.api_field_list = []
+        self.get_api_field('', self.component_api_schema)
+
+        if not self.api_field_list:
+            self.log.error("Failed to get API component fields!")
+            return False
+
         return True
