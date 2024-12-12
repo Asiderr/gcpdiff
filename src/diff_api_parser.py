@@ -54,9 +54,7 @@ class DiffApiParser:
             return False
 
         self.log.debug(f"Getting {component} schema")
-        self.component_api_schema = self._api_schemas.get(
-            component.capitalize(), {}
-        )
+        self.component_api_schema = self._api_schemas.get(component)
         if not self.component_api_schema:
             self.log.error("The specified component not found in the schema!")
             return False
@@ -78,7 +76,10 @@ class DiffApiParser:
 
         try:
             for key, value in value_origin["properties"].items():
-                self.get_api_field(key_appendix+key, value)
+                if key != "properties":
+                    self.get_api_field(key_appendix+key, value)
+                else:
+                    self.get_api_field(key_appendix, value)
             nested = True
         except KeyError:
             pass
@@ -90,7 +91,7 @@ class DiffApiParser:
         except KeyError:
             pass
 
-        if not nested:
+        if not nested and key_origin not in self.api_field_list:
             self.api_field_list.append(key_origin)
 
 

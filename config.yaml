@@ -1,0 +1,9 @@
+Instance:
+  Mapping:
+    attachedDisk: "disks"
+    bootDisk: "disks"
+    networkInterface: "networkInterfaces"
+    ipv6AccessConfig: "ipv6AccessConfigs"
+    accessConfig:  "accessConfigs"
+  Exclude:
+    - scheduling.locationHint

@@ -3,3 +3,7 @@
 DISCOVERY_DOC_URL = (
     "https://www.googleapis.com/discovery/v1/apis/compute/v1/rest"
 )
+
+YAML_CONFIG_PATH = (
+    "/home/nkaminski/storage/infogain/gcptf/gcp-diff/config.yaml"
+)

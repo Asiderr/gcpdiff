@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import json
+import re
 import subprocess
-import sys
-import io
 import time
 
 class DiffTfParser:
@@ -64,6 +63,18 @@ class DiffTfParser:
 
         return True
 
+    def camel_to_snake_string(self, camel):
+        """
+        Method converts camel string into snake case
+
+        Args:
+            camel (str): String that needs to be converted
+
+        Returns:
+            Snake case string
+        """
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', camel).lower()
+
     def snake_to_camel_string(self, snake):
         """
         """
@@ -99,7 +110,7 @@ class DiffTfParser:
                     "provider_schemas"][
                     "registry.terraform.io/hashicorp/google"][
                     "resource_schemas"][
-                    f"google_compute_{component}"]
+                    f"google_compute_{self.camel_to_snake_string(component)}"]
             )
         except KeyError:
             self.log.error("The specified component not found in the schema.")
