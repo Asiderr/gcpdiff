@@ -7,8 +7,20 @@ import time
 
 from diff_config import DISCOVERY_DOC_URL
 
+
 class DiffApiParser:
     def get_api_schemas(self):
+        """
+        Retrieves and processes the API schemas from the discovery document.
+
+        Returns:
+            bool:
+                - `True` if the API schemas are successfully retrieved,
+                  decoded, and dereferenced.
+                - `False` if there is an error at any step of the process
+                  (missing logger, failed JSON decoding, or dereferencing
+                  issues).
+        """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
             return False
@@ -45,6 +57,23 @@ class DiffApiParser:
         return True
 
     def get_api_component_schema(self, component, save_file=False):
+        """
+        Retrieves the API schema for a specified component and optionally
+        saves it to a file.
+
+        Args:
+            component (str): The name of the component for which the API schema
+                             is to be retrieved.
+            save_file (bool, optional): If `True`, the schema is saved to
+                                        a JSON file. Defaults to `False`.
+
+        Returns:
+            bool:
+                - `True` if the API schema is successfully retrieved and
+                  optionally saved to a file.
+                - `False` if any required attributes are missing, or the
+                  component schema cannot be found.
+        """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
             return False
@@ -69,6 +98,18 @@ class DiffApiParser:
         return True
 
     def get_api_field(self, key_origin, value_origin):
+        """
+        Recursively extracts API field keys from a given schema and appends
+        them to `self.api_field_list`.
+
+        Args:
+            key_origin (str): The key path of the current field being processed
+                              (used for nested fields).
+            value_origin (dict): The current level of the schema to process,
+                                 typically a dictionary containing
+                                 "properties" or "items" keys with their
+                                 respective values.
+        """
         nested = False
         key_appendix = ''
         if key_origin != '':
@@ -94,9 +135,16 @@ class DiffApiParser:
         if not nested and key_origin not in self.api_field_list:
             self.api_field_list.append(key_origin)
 
-
     def get_api_fields(self):
         """
+        Retrieves the API fields from the component API schema.
+
+        Returns:
+            bool:
+                - `True` if the API fields are successfully retrieved and
+                  `self.api_field_list` is populated.
+                - `False` if an error occurs (e.g., missing attributes or
+                  empty field list).
         """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")

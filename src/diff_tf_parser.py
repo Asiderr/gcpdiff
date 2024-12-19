@@ -5,9 +5,16 @@ import re
 import subprocess
 import time
 
+
 class DiffTfParser:
     def terraform_check(self):
         """
+        Checks if Terraform is installed and accessible by running the
+        `terraform --version` command.
+
+        Returns:
+            bool: `True` if Terraform is installed and the version command
+                  runs successfully, `False` otherwise.
         """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
@@ -20,15 +27,21 @@ class DiffTfParser:
             p = subprocess.Popen(cmd_version, stdout=subprocess.PIPE)
             p.wait()
             if p.returncode != 0:
-                self.log.error(f"Terraform version check failed!")
+                self.log.error("Terraform version check failed!")
                 return False
         except FileNotFoundError:
-            self.log.error(f"Terraform command not available!")
+            self.log.error("Terraform command not available!")
             return False
         return True
 
     def get_tf_schemas(self):
         """
+        Retrieves the Terraform schemas using the
+        `terraform providers schema -json` command.
+
+        Returns:
+            bool: `True` if the Terraform schemas are successfully retrieved
+                  and parsed, `False` otherwise.
         """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
@@ -77,11 +90,33 @@ class DiffTfParser:
 
     def snake_to_camel_string(self, snake):
         """
+        Converts a snake_case string to camelCase.
+
+        Args:
+        snake (str): The string in snake_case format to be converted.
+
+        Returns:
+        str: The string converted to camelCase format.
         """
         parts = snake.split('_')
         return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
     def snake_to_camel_schema(self, schema):
+        """
+        Recursively converts all dictionary keys in a nested structure from
+        snake_case to camelCase.
+
+        Args:
+            schema (dict, list, any): The input schema which may be
+                                      a dictionary, list, or other data types.
+                                      Nested dictionaries or lists will also
+                                      be processed recursively.
+
+        Returns:
+            dict or list: A new dictionary or list with all dictionary keys
+                          converted from snake_case to camelCase.
+                          Non-dictionary and non-list values remain unchanged.
+        """
         if isinstance(schema, dict):
             return {
                 self.snake_to_camel_string(key):
@@ -95,6 +130,19 @@ class DiffTfParser:
 
     def get_tf_component_schema(self, component, save_file=False):
         """
+        Retrieves and processes the Terraform schema for a specific component.
+
+        Args:
+            component (str): The name of the Terraform component
+                             (e.g., "google_compute_instance") for which the
+                             schema is retrieved.
+            save_file (bool, optional): If `True`, the retrieved schema will
+                                        be saved to a JSON file. Defaults to
+                                        `False`.
+
+        Returns:
+            bool: Returns `True` if the schema retrieval and processing were
+                  successful, otherwise `False`.
         """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
@@ -125,7 +173,21 @@ class DiffTfParser:
                 json.dump(self.component_tf_schema, f, indent=2)
         return True
 
-    def get_nested_attributes(self, key, type_list:list):
+    def get_nested_attributes(self, key, type_list: list):
+        """
+        Extracts nested attributes from a list of types and appends them
+        to the `tf_field_list`.
+
+        Args:
+            key (str): The base key to which nested keys (if any) will
+                       be appended.
+            type_list (list): A list of types, where some elements may
+                              contain nested dictionaries.
+
+        Returns:
+            None: The method directly modifies the `tf_field_list`
+                  by appending keys or nested keys.
+        """
         nested = False
 
         for type in type_list:
@@ -138,9 +200,21 @@ class DiffTfParser:
         if not nested:
             self.tf_field_list.append(key)
 
-
     def get_tf_field(self, key_origin, value_origin):
         """
+        Recursively extracts and appends Terraform field keys to the
+        `tf_field_list`.
+
+        Args:
+            key_origin (str): The base key (prefix) to prepend to the extracted
+                              keys.
+            value_origin (dict): The dictionary containing the Terraform block
+                                 schema, including attributes and nested block
+                                 types.
+
+        Returns:
+            None: The method directly modifies `tf_field_list` by appending
+                  the extracted keys.
         """
         key_appendix = ''
         if key_origin != '':
@@ -156,13 +230,20 @@ class DiffTfParser:
             pass
 
         try:
-            for key,value in value_origin["block"]["blockTypes"].items():
+            for key, value in value_origin["block"]["blockTypes"].items():
                 self.get_tf_field(key_appendix+key, value)
         except KeyError:
             pass
 
     def get_tf_fields(self):
         """
+        Extracts Terraform field keys from the component schema and populates
+        `tf_field_list`.
+
+        Returns:
+            bool: True if Terraform fields were successfully extracted and
+                  populated in `tf_field_list`;
+                  False if an error occurred (e.g., missing schema or logger).
         """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
