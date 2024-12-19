@@ -3,13 +3,14 @@
 import json
 import jsonref
 import requests
+import os
 import time
 
 from diff_config import DISCOVERY_DOC_URL
 
 
 class DiffApiParser:
-    def get_api_schemas(self):
+    def _get_api_schemas(self):
         """
         Retrieves and processes the API schemas from the discovery document.
 
@@ -78,7 +79,11 @@ class DiffApiParser:
             print("Error: Logger not found!")
             return False
 
-        if not self.get_api_schemas():
+        if not hasattr(self, 'cwd'):
+            print("Error: Current directory not set!")
+            return False
+
+        if not self._get_api_schemas():
             self.log.error("Cannot get GCP API schemas!")
             return False
 
@@ -89,7 +94,10 @@ class DiffApiParser:
             return False
 
         if save_file:
-            file_name = f"{component}_api_schema_{time.time()}.json"
+            file_name = os.path.join(
+                self.cwd,
+                f"{component}_api_schema_{round(time.time())}.json"
+            )
             self.log.debug(
                 f"Saving {component} schema to json file {file_name}"
             )
@@ -97,7 +105,7 @@ class DiffApiParser:
                 json.dump(self.component_api_schema, f, indent=2)
         return True
 
-    def get_api_field(self, key_origin, value_origin):
+    def _get_api_field(self, key_origin, value_origin):
         """
         Recursively extracts API field keys from a given schema and appends
         them to `self.api_field_list`.
@@ -118,16 +126,16 @@ class DiffApiParser:
         try:
             for key, value in value_origin["properties"].items():
                 if key != "properties":
-                    self.get_api_field(key_appendix+key, value)
+                    self._get_api_field(key_appendix+key, value)
                 else:
-                    self.get_api_field(key_appendix, value)
+                    self._get_api_field(key_appendix, value)
             nested = True
         except KeyError:
             pass
 
         try:
             for key, value in value_origin["items"]["properties"].items():
-                self.get_api_field(key_appendix+key, value)
+                self._get_api_field(key_appendix+key, value)
             nested = True
         except KeyError:
             pass
@@ -155,7 +163,7 @@ class DiffApiParser:
             return False
 
         self.api_field_list = []
-        self.get_api_field('', self.component_api_schema)
+        self._get_api_field('', self.component_api_schema)
 
         if not self.api_field_list:
             self.log.error("Failed to get API component fields!")

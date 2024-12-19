@@ -15,19 +15,17 @@ as JSON files.
 
 ## Installation
 
-1. Change directory to the Terraform configuration.
-
-2. Clone the repository:
+1. Clone the repository:
     ```bash
     git clone git@github.com:Asiderr/gcpdiff.git
     ```
 
-3. Install the necessary dependencies:
+2. Install the necessary dependencies:
     ```bash
     pip install -r requirements.txt
     ```
 
-4. Ensure you have `terraform` installed and properly configured on your system.
+3. Ensure you have `terraform` installed and properly configured on your system.
 
 ## Usage
 
@@ -39,6 +37,8 @@ gcpdiff/src/diff_report.py -h
 
 ### Required arguments:
 
+* `-t TERRAFORM_CONFIG`, `--terraform_config` TERRAFORM_CONFIG
+                        Path to the terraform config main.tf file
 * `-c COMPONENT`, `--component COMPONENT`: The Terraform component that will be
                                           compared with the GCP API (e.g., Instance).
 
@@ -56,12 +56,12 @@ gcpdiff/src/diff_report.py -h
 Create simple report for google_compute_instance:
 
 ```bash
-gcpdiff/src/diff_report.py -c Instance
+gcpdiff/src/diff_report.py -c Instance -t /path/to/terraform/config
 ```
 
 Create simple report for google_compute_instance and save schemas as JSON files
 and compare with an old report:
 
 ```bash
-src/diff_report.py -c Instance -s -d /path/to/old_report.yaml
+gcpdiff/src/diff_report.py -v -c Instance -t /path/to/terraform/config -s -d /path/to/old_report.yaml
 ```

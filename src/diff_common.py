@@ -22,10 +22,10 @@ class DiffCommon:
         )
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument(
-            "-v",
-            "--verbose",
-            action="store_true",
-            help="Increase logs verbosity level"
+            "-t",
+            "--terraform_config",
+            help="Path to the terraform config main.tf file",
+            required=True
         )
         parser.add_argument(
             "-c",
@@ -34,18 +34,24 @@ class DiffCommon:
             required=True
         )
         parser.add_argument(
-            "-s",
-            "--save_file",
-            action="store_true",
-            help="Save API and Terraform component schemas as a JSON files"
-        )
-        parser.add_argument(
             "-d",
             "--diff_report",
             help=(
                 "Old report file path that will be compared with the newest"
                 " report"
             )
+        )
+        parser.add_argument(
+            "-s",
+            "--save_file",
+            action="store_true",
+            help="Save API and Terraform component schemas as a JSON files"
+        )
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            action="store_true",
+            help="Increase logs verbosity level"
         )
         return parser
 

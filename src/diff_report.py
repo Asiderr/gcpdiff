@@ -13,13 +13,29 @@ from diff_config import YAML_CONFIG_PATH
 class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
     def __init__(self):
         self._cmd_input = self.diff_cmdline().parse_args()
-        self.verbose = self._cmd_input.verbose
         self.component = self._cmd_input.component
-        self.save_file = self._cmd_input.save_file
+        self.tf_config_path = self._cmd_input.terraform_config
         self.old_yaml_report_path = self._cmd_input.diff_report
+        self.save_file = self._cmd_input.save_file
+        self.verbose = self._cmd_input.verbose
         self.diff_log(verbose=self.verbose)
 
-    def load_config_diff_report(self):
+    def _change_to_tf_dir(self):
+        if not os.path.isabs(self.tf_config_path):
+            self.tf_config_path = os.path.join(
+                os.getcwd(),
+                self.tf_config_path
+            )
+
+        if not os.path.exists(os.path.join(self.tf_config_path, "main.tf")):
+            self.log.error("Wrong main.tf terraform path!")
+            return False
+
+        self.cwd = os.getcwd()
+        os.chdir(self.tf_config_path)
+        return True
+
+    def _load_config_diff_report(self):
         """
         Loads and parses the YAML configuration file for the diff report.
 
@@ -36,7 +52,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             return False
         return True
 
-    def load_old_diff_report(self):
+    def _load_old_diff_report(self):
         """
         Loads and parses the old YAML diff report.
 
@@ -68,7 +84,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             return False
         return True
 
-    def check_mapping(self, field: str):
+    def _check_mapping(self, field: str):
         """
         Checks if the given field is mapped in the YAML configuration and
         returns the mapped field.
@@ -101,6 +117,71 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
                 mapped_field = subfield
         return mapped_field
 
+    def _save_new_report(self, api_implemented, api_missing, tf_specific,
+                         excluded):
+        """
+        Saves the generated difference report to a YAML file.
+
+        Args:
+            api_implemented (list): List of API fields that are implemented
+                                    in the Terraform component.
+            api_missing (list): List of API fields that are not implemented
+                                in the Terraform component.
+            tf_specific (list): List of fields specific to the Terraform
+                                component.
+            excluded (list): List of fields explicitly excluded from the
+                             comparison.
+
+        Returns:
+            bool: True if the report file is successfully saved and exists,
+            False otherwise.
+        """
+        self.log.info("Saving new YAML report")
+        self.yaml_report = {
+            "api_implemented": api_implemented,
+            "api_missing": api_missing,
+            "tf_specific": tf_specific,
+            "excluded": excluded,
+        }
+
+        file_name = f"{self.component}_diff_report_{round(time.time())}.yaml"
+        self.log.debug(
+            f"Saving {self.component} schema to json file {file_name}"
+        )
+        with open(file_name, "w") as f:
+            yaml.dump(self.yaml_report, f)
+        if not os.path.exists(file_name):
+            return False
+        return True
+
+    def _check_new_implemented_fields(self):
+        """
+        Compares the current YAML report with the previous report to
+        identify newly implemented API fields.
+
+        Returns:
+            bool:
+                - True if the comparison completes successfully
+                  (whether or not new fields were found).
+                - False if the old YAML report could not be loaded.
+        """
+        self.log.info("Getting old YAML report")
+        if not self._load_old_diff_report():
+            self.log.error("Cannot get old YAML report! Exiting...")
+            return False
+
+        diff = deepdiff.DeepDiff(self.yaml_old_report, self.yaml_report)
+
+        if diff:
+            self.log.info(f"{BOLD}{GREEN}API fields implemented from the last "
+                          f"report:{ENDC}")
+            for _, value in diff['iterable_item_added'].items():
+                self.log.info(f"{BOLD}{GREEN}{value}{ENDC}")
+        else:
+            self.log.info(f"{BOLD}{BLUE}No new fields implemented from the "
+                          f"last report.{ENDC}")
+        return True
+
     def generate_diff_report(self):
         """
         Generates a diff report comparing the current and old API and
@@ -120,11 +201,17 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         8. If an old YAML report path is provided, it loads the previous diff
            report and calculates the differences using `deepdiff`.
         """
+        self.log.info("Changing directory to terraform config place")
+        if not self._change_to_tf_dir():
+            self.log.error("Cannot change workspace directory! Exiting...")
+            exit(1)
+
         self.log.info(f"Getting {self.component} API Schema")
         if not self.get_api_component_schema(self.component, self.save_file):
             self.log.error(
                 f"Cannot get API {self.component} schema! Exiting..."
             )
+            os.chdir(self.cwd)
             exit(1)
 
         self.log.info(f"Getting {self.component} API Schema fields")
@@ -133,6 +220,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
                 f"Cannot get API {self.component} schema fields! "
                 "Exiting..."
             )
+            os.chdir(self.cwd)
             exit(1)
 
         self.log.info(f"Getting {self.component} Terraform Schema")
@@ -140,6 +228,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             self.log.error(
                 f"Cannot get Terraform {self.component} schema! Exiting..."
             )
+            os.chdir(self.cwd)
             exit(1)
 
         self.log.info(f"Getting {self.component} Terraform Schema fields")
@@ -148,11 +237,13 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
                 f"Cannot get Terraform {self.component} schema fields! "
                 "Exiting..."
             )
+            os.chdir(self.cwd)
             exit(1)
 
         self.log.info("Getting YAML config")
-        if not self.load_config_diff_report():
+        if not self._load_config_diff_report():
             self.log.error("Cannot get YAML config! Exiting...")
+            os.chdir(self.cwd)
             exit(1)
 
         self.log.debug(f"{self.component} API fields: {self.api_field_list}")
@@ -165,7 +256,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
 
         self.log.debug("Substring mapping")
         for field in self.tf_field_list:
-            mapped_field = self.check_mapping(field)
+            mapped_field = self._check_mapping(field)
             if (mapped_field in self.api_field_list and
                     mapped_field not in api_implemented):
                 api_implemented.append(mapped_field)
@@ -215,39 +306,23 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         for field in tf_specific:
             self.log.info(f"{BLUE}{field}{ENDC}")
 
-        self.log.info("Saving new YAML report")
-        yaml_report = {
-            "api_implemented": api_implemented,
-            "api_missing": api_missing,
-            "tf_specific": tf_specific,
-            "excluded": excluded,
-        }
+        os.chdir(self.cwd)
 
-        file_name = f"{self.component}_diff_report_{time.time()}.yaml"
-        self.log.debug(
-            f"Saving {self.component} schema to json file {file_name}"
-        )
-        with open(file_name, "w") as f:
-            yaml.dump(yaml_report, f)
+        if not self._save_new_report(api_implemented, api_missing, tf_specific,
+                                     excluded):
+            self.log.error(f"Cannot create new diff {self.component} report! "
+                           "Exiting...")
+            os.chdir(self.cwd)
+            exit(1)
 
         if not self.old_yaml_report_path:
             return
 
-        self.log.info("Getting old YAML report")
-        if not self.load_old_diff_report():
-            self.log.error("Cannot get old YAML report! Exiting...")
+        if not self._check_new_implemented_fields():
+            self.log.error("Cannot compare new report with old report! "
+                           "Exiting...")
+            os.chdir(self.cwd)
             exit(1)
-
-        diff = deepdiff.DeepDiff(self.yaml_old_report, yaml_report)
-
-        if diff:
-            self.log.info(f"{BOLD}{GREEN}API fields implemented from the last "
-                          f"report:{ENDC}")
-            for _, value in diff['iterable_item_added'].items():
-                self.log.info(f"{BOLD}{GREEN}{value}{ENDC}")
-        else:
-            self.log.info(f"{BOLD}{BLUE}No new fields implemented from the "
-                          f"last report.{ENDC}")
 
 
 if __name__ == "__main__":

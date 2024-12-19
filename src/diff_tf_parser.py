@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import re
 import subprocess
 import time
 
 
 class DiffTfParser:
-    def terraform_check(self):
+    def _terraform_check(self):
         """
         Checks if Terraform is installed and accessible by running the
         `terraform --version` command.
@@ -34,7 +35,7 @@ class DiffTfParser:
             return False
         return True
 
-    def get_tf_schemas(self):
+    def _get_tf_schemas(self):
         """
         Retrieves the Terraform schemas using the
         `terraform providers schema -json` command.
@@ -48,7 +49,7 @@ class DiffTfParser:
             return False
 
         self.log.debug("Checking if Terraform is available")
-        if not self.terraform_check():
+        if not self._terraform_check():
             return False
 
         self.log.debug("Trying to get Terraform schemas")
@@ -76,7 +77,7 @@ class DiffTfParser:
 
         return True
 
-    def camel_to_snake_string(self, camel):
+    def _camel_to_snake_string(self, camel):
         """
         Method converts camel string into snake case
 
@@ -88,7 +89,7 @@ class DiffTfParser:
         """
         return re.sub(r'(?<!^)(?=[A-Z])', '_', camel).lower()
 
-    def snake_to_camel_string(self, snake):
+    def _snake_to_camel_string(self, snake):
         """
         Converts a snake_case string to camelCase.
 
@@ -101,7 +102,7 @@ class DiffTfParser:
         parts = snake.split('_')
         return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
-    def snake_to_camel_schema(self, schema):
+    def _snake_to_camel_schema(self, schema):
         """
         Recursively converts all dictionary keys in a nested structure from
         snake_case to camelCase.
@@ -119,12 +120,12 @@ class DiffTfParser:
         """
         if isinstance(schema, dict):
             return {
-                self.snake_to_camel_string(key):
-                self.snake_to_camel_schema(value)
+                self._snake_to_camel_string(key):
+                self._snake_to_camel_schema(value)
                 for key, value in schema.items()
             }
         elif isinstance(schema, list):
-            return [self.snake_to_camel_schema(item) for item in schema]
+            return [self._snake_to_camel_schema(item) for item in schema]
         else:
             return schema
 
@@ -148,24 +149,31 @@ class DiffTfParser:
             print("Error: Logger not found!")
             return False
 
-        if not self.get_tf_schemas():
+        if not hasattr(self, 'cwd'):
+            print("Error: Current directory not set!")
+            return False
+
+        if not self._get_tf_schemas():
             self.log.error("Cannot get Terraform schemas!")
             return False
 
         try:
-            self.component_tf_schema = self.snake_to_camel_schema(
+            self.component_tf_schema = self._snake_to_camel_schema(
                 self.terraform_schemas[
                     "provider_schemas"][
                     "registry.terraform.io/hashicorp/google"][
                     "resource_schemas"][
-                    f"google_compute_{self.camel_to_snake_string(component)}"]
+                    f"google_compute_{self._camel_to_snake_string(component)}"]
             )
         except KeyError:
             self.log.error("The specified component not found in the schema.")
             return False
 
         if save_file:
-            file_name = f"{component}_terraform_schema_{time.time()}.json"
+            file_name = os.path.join(
+                self.cwd,
+                f"{component}_terraform_schema_{round(time.time())}.json"
+            )
             self.log.debug(
                 f"Saving {component} schema to json file {file_name}"
             )
@@ -173,7 +181,7 @@ class DiffTfParser:
                 json.dump(self.component_tf_schema, f, indent=2)
         return True
 
-    def get_nested_attributes(self, key, type_list: list):
+    def _get_nested_attributes(self, key, type_list: list):
         """
         Extracts nested attributes from a list of types and appends them
         to the `tf_field_list`.
@@ -200,7 +208,7 @@ class DiffTfParser:
         if not nested:
             self.tf_field_list.append(key)
 
-    def get_tf_field(self, key_origin, value_origin):
+    def _get_tf_field(self, key_origin, value_origin):
         """
         Recursively extracts and appends Terraform field keys to the
         `tf_field_list`.
@@ -225,13 +233,13 @@ class DiffTfParser:
                 if not isinstance(value["type"], list):
                     self.tf_field_list.append(key_appendix+key)
                     continue
-                self.get_nested_attributes(key_appendix+key, value["type"])
+                self._get_nested_attributes(key_appendix+key, value["type"])
         except KeyError:
             pass
 
         try:
             for key, value in value_origin["block"]["blockTypes"].items():
-                self.get_tf_field(key_appendix+key, value)
+                self._get_tf_field(key_appendix+key, value)
         except KeyError:
             pass
 
@@ -254,7 +262,7 @@ class DiffTfParser:
             return False
 
         self.tf_field_list = []
-        self.get_tf_field('', self.component_tf_schema)
+        self._get_tf_field('', self.component_tf_schema)
 
         if not self.tf_field_list:
             self.log.error("Failed to get Terraform component fields!")
