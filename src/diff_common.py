@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import logging
-import subprocess
 
 BOLD = "\033[1m"
 RED = "\033[31m"
@@ -10,6 +9,7 @@ YELLOW = "\033[33m"
 BLUE = "\033[34m"
 ENDC = '\033[0m'
 
+
 class DiffCommon:
     def diff_cmdline(self):
         """
@@ -17,8 +17,8 @@ class DiffCommon:
         """
         description = (
             "Tool creates report describing differences between Google Cloud"
-            " APIs fields and resources integrated in terraform-provider-google"
-            " and terraform-provider-google-beta."
+            " APIs fields and resources integrated in"
+            " terraform-provider-google and terraform-provider-google-beta."
         )
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument(
@@ -38,6 +38,14 @@ class DiffCommon:
             "--save_file",
             action="store_true",
             help="Save API and Terraform component schemas as a JSON files"
+        )
+        parser.add_argument(
+            "-d",
+            "--diff_report",
+            help=(
+                "Old report file path that will be compared with the newest"
+                " report"
+            )
         )
         return parser
 
