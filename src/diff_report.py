@@ -191,10 +191,10 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
 
         This method performs several tasks to generate a comprehensive diff
         report:
-        1. It retrieves the API schema and fields for the specified component.
-        2. It retrieves the Terraform schema and fields for the specified
+        1. It loads the YAML configuration for the diff report.
+        2. It retrieves the API schema and fields for the specified component.
+        3. It retrieves the Terraform schema and fields for the specified
            component.
-        3. It loads the YAML configuration for the diff report.
         4. It compares the API and Terraform field lists, checking for
            implemented, missing, and specific fields.
         5. It excludes any fields specified in the configuration.
@@ -203,6 +203,11 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         8. If an old YAML report path is provided, it loads the previous diff
            report and calculates the differences using `deepdiff`.
         """
+        self.log.info("Getting YAML config")
+        if not self._load_config_diff_report():
+            self.log.error("Cannot get YAML config! Exiting...")
+            exit(1)
+
         self.log.info("Changing directory to terraform config place")
         if not self._change_to_tf_dir():
             self.log.error("Cannot change workspace directory! Exiting...")
@@ -241,12 +246,6 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
                 f"Cannot get Terraform {self.component} schema fields! "
                 "Exiting..."
             )
-            os.chdir(self.cwd)
-            exit(1)
-
-        self.log.info("Getting YAML config")
-        if not self._load_config_diff_report():
-            self.log.error("Cannot get YAML config! Exiting...")
             os.chdir(self.cwd)
             exit(1)
 

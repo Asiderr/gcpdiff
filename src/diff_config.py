@@ -9,5 +9,5 @@ DISCOVERY_DOC_URL_BETA = (
 )
 
 YAML_CONFIG_PATH = (
-    "/home/nkaminski/storage/infogain/gcptf/gcp-diff/config.yaml"
+    "./config.yaml"
 )
