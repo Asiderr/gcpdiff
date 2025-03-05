@@ -77,7 +77,7 @@ class DiffTfParser:
 
         return True
 
-    def _camel_to_snake_string(self, camel):
+    def camel_to_snake_string(self, camel):
         """
         Method converts camel string into snake case
 
@@ -170,7 +170,7 @@ class DiffTfParser:
                     "provider_schemas"][
                     provider][
                     "resource_schemas"][
-                    f"google_compute_{self._camel_to_snake_string(component)}"]
+                    f"google_compute_{self.camel_to_snake_string(component)}"]
             )
         except KeyError:
             self.log.error("The specified component not found in the schema.")

@@ -309,6 +309,13 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         for field in tf_specific:
             self.log.info(f"{BLUE}{field}{ENDC}")
 
+        fields_number = len(api_implemented) + len(tf_specific)
+
+        self.log.info(f"{BOLD}{BLUE}Number of Terraform fields:"
+                      f" {fields_number}{ENDC}")
+        self.log.info(f"{BOLD}{RED}Current Gap:"
+                      f" {len(api_missing)}{ENDC}")
+
         os.chdir(self.cwd)
 
         if not self._save_new_report(api_implemented, api_missing, tf_specific,

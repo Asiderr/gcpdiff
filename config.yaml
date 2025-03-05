@@ -62,3 +62,151 @@ Instance:
   - privateIpv6GoogleAccess
   - satisfiesPzs
   - satisfiesPzi
+
+Disk:
+  Mapping:
+    size: sizeGb
+    image: sourceImage
+    snapshot: sourceSnapshot
+    kmsKeySelfLink: kmsKeyName
+    disk: diskId
+  Exclude:
+  - kind
+  - status
+  - options
+  - region
+  - replicaZones
+  - licenseCodes
+  - satisfiesPzs
+  - satisfiesPzi
+  - locationHint
+  - asyncPrimaryDisk.consistencyGroupPolicy
+  - asyncPrimaryDisk.consistencyGroupPolicyId
+  - asyncSecondaryDisks
+  - resourceStatus.asyncPrimaryDisk.state
+  - resourceStatus.asyncSecondaryDisks
+  - sourceConsistencyGroupPolicy
+  - sourceConsistencyGroupPolicyId
+  - sourceInstantSnapshotId
+
+Snapshot:
+  Mapping:
+    kmsKeySelfLink: kmsKeyName
+  Exclude:
+  - kind
+  - status
+  - sourceDiskId
+  - storageBytesStatus
+  - licenseCodes
+  - autoCreated
+  - downloadBytes
+  - satisfiesPzs
+  - locationHint
+  - sourceSnapshotSchedulePolicy
+  - sourceSnapshotSchedulePolicyId
+  - sourceInstantSnapshotId
+  - creationSizeBytes
+  - satisfiesPzi
+
+Subnetwork:
+  Mapping:
+    secondaryIpRange: secondaryIpRanges
+  Exclude:
+  - kind
+  - logConfig.enable
+
+Network:
+  Mapping:
+    gatewayIpv4: gatewayIPv4
+  ExactMapping:
+    routingConfig.routingMode: routingMode
+    routingConfig.bgpBestPathSelectionMode: bgpBestPathSelectionMode
+    routingConfig.bgpAlwaysCompareMed: bgpAlwaysCompareMed
+    routingConfig.bgpInterRegionCost: bgpInterRegionCost
+  Exclude:
+  - kind
+  - IPv4Range
+  - selfLinkWithId
+  - subnetworks
+  - firewallPolicy
+  - routingConfig.effectiveBgpAlwaysCompareMed
+  - routingConfig.effectiveBgpInterRegionCost
+
+Route:
+  Exclude:
+  - kind
+
+PerInstanceConfig:
+  ExactMapping:
+   preservedState.disks: preservedState.disk.source
+   preservedState.internalIPs: preservedState.internalIp.ipAddress.address
+   preservedState.externalIPs: preservedState.externalIp.ipAddress.address
+  Exclude:
+  - status
+  - fingerprint
+
+Autoscaler:
+  Mapping:
+    minReplicas: minNumReplicas
+    maxReplicas: maxNumReplicas
+    cooldownPeriod: coolDownPeriodSec
+    metric: customMetricUtilizations
+    type: utilizationTargetType
+  ExactMapping:
+    autoscalingPolicy.cpuUtilization.utilizationTarget: autoscalingPolicy.cpuUtilization.target
+    autoscalingPolicy.loadBalancingUtilization.utilizationTarget: autoscalingPolicy.loadBalancingUtilization.target
+    autoscalingPolicy.customMetricUtilizations.utilizationTarget: autoscalingPolicy.metric.target
+    autoscalingPolicy.customMetricUtilizations.metric: autoscalingPolicy.metric.name
+    autoscalingPolicy.scalingSchedules: autoscalingPolicy.scalingSchedules.name
+  Exclude:
+  - autoscalingPolicy.scaleDownControl.maxScaledDownReplicas.calculated
+  - autoscalingPolicy.scaleInControl.maxScaledInReplicas.calculated
+  - kind
+  - region
+  - status
+  - statusDetails.message
+  - statusDetails.type
+  - recommendedSize
+  - scalingScheduleStatus
+
+InstanceGroupManager:
+  Mapping:
+   version: versions
+   namedPort: namedPorts
+  ExactMapping:
+    allInstancesConfig..metadata: allInstancesConfig.metadata
+    allInstancesConfig..labels: allInstancesConfig.labels
+    updatePolicy.maxUnavailable.fixed: updatePolicy.maxUnavailableFixed
+    updatePolicy.maxUnavailable.percent: updatePolicy.maxUnavailablePercent
+    updatePolicy.maxSurge.fixed: updatePolicy.maxSurgeFixed
+    updatePolicy.maxSurge.percent: updatePolicy.maxSurgePercent
+    status.stateful.isStateful: status.stateful
+    status.allInstancesConfig.effective: status.allInstancesConfig
+    status.versionTarget.isReached: status.versionTarget
+  Exclude:
+  - kind
+  - region
+  - instanceTemplate
+  - versions.targetSize.calculated
+  - currentActions.none
+  - currentActions.creatingWithoutRetries
+  - status.stateful.hasStatefulConfig
+  - status.stateful.perInstanceConfigs.allEffective
+  - status.allInstancesConfig.currentRevision
+  - status.versionTarget.isReached
+  - status.autoscaler
+  - updatePolicy.maxSurge.calculated
+  - updatePolicy.maxUnavailable.calculated
+  - satisfiesPzi
+  - satisfiesPzs
+  - currentActions.verifying
+  - currentActions.recreating
+  - currentActions.suspending
+  - currentActions.resuming
+  - currentActions.stopping
+  - currentActions.starting
+  - currentActions.creating
+  - currentActions.deleting
+  - currentActions.abandoning
+  - currentActions.restarting
+  - currentActions.refreshing
