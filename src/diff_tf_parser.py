@@ -6,6 +6,8 @@ import re
 import subprocess
 import time
 
+from diff_config import TF_RESOURCES
+
 
 class DiffTfParser:
     def _terraform_check(self):
@@ -21,21 +23,26 @@ class DiffTfParser:
             print("Error: Logger not found!")
             return False
 
-        cmd_version = ["terraform", "--version"]
+        cmd_version = ["terraform", "version", "--json"]
         self.log.debug("CMD: " + " ".join(cmd_version))
 
         try:
             p = subprocess.Popen(cmd_version, stdout=subprocess.PIPE)
-            p.wait()
+            stdout, __ = p.communicate()
+            terraform_version_stdout = stdout.decode("utf-8")
+
             if p.returncode != 0:
                 self.log.error("Terraform version check failed!")
                 return False
+
+            self.terraform_versions = json.loads(terraform_version_stdout)
+
         except FileNotFoundError:
             self.log.error("Terraform command not available!")
             return False
         return True
 
-    def _get_tf_schemas(self):
+    def get_tf_schemas(self):
         """
         Retrieves the Terraform schemas using the
         `terraform providers schema -json` command.
@@ -77,7 +84,7 @@ class DiffTfParser:
 
         return True
 
-    def camel_to_snake_string(self, camel):
+    def _camel_to_snake_string(self, camel):
         """
         Method converts camel string into snake case
 
@@ -129,19 +136,18 @@ class DiffTfParser:
         else:
             return schema
 
-    def get_tf_component_schema(self, component, save_file=False, beta=False):
+    def get_tf_component_schema(self, component, api, save_file=False):
         """
         Retrieves and processes the Terraform schema for a specific component.
 
         Args:
             component (str): The name of the Terraform component
-                             (e.g., "google_compute_instance") for which the
+                             (e.g., "instance") for which the
                              schema is retrieved.
+            api (str): Name of analyzed API that is base for tf resources
             save_file (bool, optional): If `True`, the retrieved schema will
                                         be saved to a JSON file. Defaults to
                                         `False`.
-            beta (bool, optional): If `True`, use beta provider when parsing
-                                   Terraform and API schemas.
 
         Returns:
             bool: Returns `True` if the schema retrieval and processing were
@@ -152,17 +158,35 @@ class DiffTfParser:
             return False
 
         if not hasattr(self, 'cwd'):
-            print("Error: Current directory not set!")
+            self.log.error("Error: Current directory not set!")
             return False
 
-        if not self._get_tf_schemas():
-            self.log.error("Cannot get Terraform schemas!")
+        if not hasattr(self, 'terraform_versions'):
+            self.log.error("Error: Terraform versions not known!")
             return False
 
-        if beta:
+        if not hasattr(self, 'terraform_schemas'):
+            self.log.error("Error: Terraform schemas not set!")
+            return False
+
+        if "beta" in api:
             provider = "registry.terraform.io/hashicorp/google-beta"
         else:
             provider = "registry.terraform.io/hashicorp/google"
+
+        self.tf_resource_name = (
+            f"{TF_RESOURCES[api]}"
+            f"{self._camel_to_snake_string(component)}"
+        )
+
+        try:
+            self.tf_provider_version = (
+                self.terraform_versions["provider_selections"][provider]
+            ).replace(".", "-")
+            self.log.debug(f"{provider} version: {self.tf_provider_version}")
+        except KeyError:
+            self.log.error(f"The version of {provider} not known!")
+            return False
 
         try:
             self.component_tf_schema = self._snake_to_camel_schema(
@@ -170,16 +194,17 @@ class DiffTfParser:
                     "provider_schemas"][
                     provider][
                     "resource_schemas"][
-                    f"google_compute_{self.camel_to_snake_string(component)}"]
+                    self.tf_resource_name]
             )
         except KeyError:
-            self.log.error("The specified component not found in the schema.")
+            self.log.debug(f"The specified {self.tf_resource_name} not found"
+                           " in the schema.")
             return False
 
         if save_file:
             file_name = os.path.join(
                 self.cwd,
-                (f"{component}_terraform_{'beta_' if beta else ''}schema_"
+                (f"{self.tf_resource_name}_terraform_schema_"
                  f"{round(time.time())}.json")
             )
             self.log.debug(

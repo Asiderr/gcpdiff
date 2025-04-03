@@ -8,3 +8,4 @@ venv/
 *.json
 *.yaml
 !config.yaml
+*-global-reports-*/

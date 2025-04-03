@@ -6,13 +6,16 @@ import requests
 import os
 import time
 
-from diff_config import DISCOVERY_DOC_URL, DISCOVERY_DOC_URL_BETA
+from diff_config import API_URLS
 
 
 class DiffApiParser:
-    def _get_api_schemas(self, beta=False):
+    def get_api_schemas(self, api):
         """
         Retrieves and processes the API schemas from the discovery document.
+
+        Args:
+            api (str): Name of analyzed API
 
         Returns:
             bool:
@@ -26,15 +29,12 @@ class DiffApiParser:
             print("Error: Logger not found!")
             return False
 
-        if beta:
-            discovery_doc = DISCOVERY_DOC_URL_BETA
-        else:
-            discovery_doc = DISCOVERY_DOC_URL
+        discovery_doc_url = API_URLS[api]
 
         self.log.debug(
-            f"Trying to get discovery doc from: {discovery_doc}"
+            f"Trying to get discovery doc from: {discovery_doc_url}"
         )
-        discovery_response = requests.get(discovery_doc)
+        discovery_response = requests.get(discovery_doc_url)
         try:
             self.log.debug("Trying to decode JSON file")
             ref_api_schemas = discovery_response.json()
@@ -48,21 +48,21 @@ class DiffApiParser:
 
         try:
             self.log.debug("Trying to dereference API schemas")
-            self._api_schemas = jsonref.JsonRef.replace_refs(
+            self.api_schemas = jsonref.JsonRef.replace_refs(
                 ref_api_schemas,
-                base_uri=discovery_doc,
+                base_uri=discovery_doc_url,
                 jsonschema=True
             ).get("schemas", {})
         except jsonref.JsonRefError:
             self.log.error("Dereferencing API schema has failed!")
             return False
 
-        if not self._api_schemas:
+        if not self.api_schemas:
             self.log.error("Unknown error during dereferencing API schema!")
 
         return True
 
-    def get_api_component_schema(self, component, save_file=False, beta=False):
+    def get_api_component_schema(self, component, api, save_file=False):
         """
         Retrieves the API schema for a specified component and optionally
         saves it to a file.
@@ -70,10 +70,9 @@ class DiffApiParser:
         Args:
             component (str): The name of the component for which the API schema
                              is to be retrieved.
+            api (str): Name of analyzed API
             save_file (bool, optional): If `True`, the schema is saved to
                                         a JSON file. Defaults to `False`.
-            beta (bool, optional): If `True`, use beta provider when parsing
-                                   Terraform and API schemas.
 
         Returns:
             bool:
@@ -87,15 +86,15 @@ class DiffApiParser:
             return False
 
         if not hasattr(self, 'cwd'):
-            print("Error: Current directory not set!")
+            self.log.error("Error: Current directory not set!")
             return False
 
-        if not self._get_api_schemas(beta=beta):
-            self.log.error("Cannot get GCP API schemas!")
+        if not hasattr(self, 'api_schemas'):
+            self.log.error("Error: API schemas not set!")
             return False
 
         self.log.debug(f"Getting {component} schema")
-        self.component_api_schema = self._api_schemas.get(component)
+        self.component_api_schema = self.api_schemas.get(component)
         if not self.component_api_schema:
             self.log.error("The specified component not found in the schema!")
             return False
@@ -103,8 +102,7 @@ class DiffApiParser:
         if save_file:
             file_name = os.path.join(
                 self.cwd,
-                (f"{component}_api_{'beta_' if beta else ''}schema_"
-                 f"{round(time.time())}.json")
+                (f"{component}_{api}_api_{round(time.time())}.json")
             )
             self.log.debug(
                 f"Saving {component} schema to json file {file_name}"
@@ -149,7 +147,15 @@ class DiffApiParser:
             pass
 
         if not nested and key_origin not in self.api_field_list:
-            self.api_field_list.append(key_origin)
+            try:
+                if "[Output Only]" in value_origin["description"]:
+                    self.api_output_only.append(key_origin)
+                elif "Output only." in value_origin["description"]:
+                    self.api_output_only.append(key_origin)
+                else:
+                    self.api_field_list.append(key_origin)
+            except KeyError:
+                self.api_field_list.append(key_origin)
 
     def get_api_fields(self):
         """
@@ -171,6 +177,7 @@ class DiffApiParser:
             return False
 
         self.api_field_list = []
+        self.api_output_only = []
         self._get_api_field('', self.component_api_schema)
 
         if not self.api_field_list:

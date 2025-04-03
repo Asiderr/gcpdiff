@@ -210,3 +210,30 @@ InstanceGroupManager:
   - currentActions.abandoning
   - currentActions.restarting
   - currentActions.refreshing
+
+FirewallPolicy:
+  Exclude:
+  - kind
+  - rules.kind
+  - packetMirroringRules.kind
+  - displayName
+
+BackendService:
+  Mapping:
+    backend: backends
+    enableCdn: enableCDN
+  ExactMapping:
+    connectionDraining.drainingTimeoutSec: connectionDrainingTimeoutSec
+  Exclude:
+  - port
+  - securitySettings.authentication
+  - backends.failover # Implemented in RegionBackendService
+  - failoverPolicy.disableConnectionDrainOnFailover # RegionBackendService
+  - failoverPolicy.dropTrafficIfUnhealthy # RegionBackendService
+  - failoverPolicy.failoverRatio # RegionBackendService
+  - network # RegionBackendService
+  - subsetting.policy # RegionBackendService
+  - connectionTrackingPolicy.trackingMode
+  - connectionTrackingPolicy.connectionPersistenceOnUnhealthyBackends
+  - connectionTrackingPolicy.idleTimeoutSec
+  - connectionTrackingPolicy.enableStrongAffinity
