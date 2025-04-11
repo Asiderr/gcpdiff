@@ -1,3 +1,142 @@
+AttachedDisk:
+  Exclude:
+  - type
+  - savedState
+  - source # ComputedInstance
+  - boot # ComputedInstance
+  - initializeParams.licenses
+
+Autoscaler:
+  Mapping:
+    minReplicas: minNumReplicas
+    maxReplicas: maxNumReplicas
+    cooldownPeriod: coolDownPeriodSec
+    metric: customMetricUtilizations
+    type: utilizationTargetType
+  ExactMapping:
+    autoscalingPolicy.cpuUtilization.utilizationTarget: autoscalingPolicy.cpuUtilization.target
+    autoscalingPolicy.loadBalancingUtilization.utilizationTarget: autoscalingPolicy.loadBalancingUtilization.target
+    autoscalingPolicy.customMetricUtilizations.utilizationTarget: autoscalingPolicy.metric.target
+    autoscalingPolicy.customMetricUtilizations.metric: autoscalingPolicy.metric.name
+    autoscalingPolicy.scalingSchedules: autoscalingPolicy.scalingSchedules.name
+  Exclude:
+  - autoscalingPolicy.scaleDownControl.maxScaledDownReplicas.calculated
+  - autoscalingPolicy.scaleInControl.maxScaledInReplicas.calculated
+  - kind
+  - region
+  - status
+  - statusDetails.message
+  - statusDetails.type
+  - recommendedSize
+  - scalingScheduleStatus
+
+BackendBucket:
+  Exclude:
+  - kind
+
+DiskAsyncReplication:
+  ExactMapping:
+    disk: primaryDisk
+
+Firewall:
+  Mapping:
+    allow: allowed
+    protocol: IPProtocol
+    deny: denied
+  Exclude:
+  - logConfig.enable
+
+Image:
+  Mapping:
+    kmsKeySelfLink: kmsKeyName
+
+InstanceGroup:
+  Mapping:
+    namedPort: namedPorts
+
+Reservation:
+  ExactMapping:
+   shareSettings.projectMap: shareSettings.projectMap.id
+
+SecurityPolicy:
+  Mapping:
+    rule: rules
+    exclusion: exclusions
+    requestHeader: requestHeadersToExclude
+    value: val
+    operator: op
+    requestCookie: requestCookiesToExclude
+    requestQueryParam: requestQueryParamsToExclude
+    requestUri: requestUrisToExclude
+  Exclude:
+  - kind
+  - rules.kind
+  - userDefinedFields.name # RegionSecurityPolicy
+  - userDefinedFields.base # RegionSecurityPolicy
+  - userDefinedFields.offset # RegionSecurityPolicy
+  - userDefinedFields.size # RegionSecurityPolicy
+  - userDefinedFields.mask # RegionSecurityPolicy
+  - adaptiveProtectionConfig.layer7DdosDefenseConfig.thresholdConfigs.trafficGranularityConfigs.value # Implemented
+
+SecurityPolicyRule:
+  Mapping:
+    exclusion: exclusions
+    requestHeader: requestHeadersToExclude
+    value: val
+    operator: op
+    requestCookie: requestCookiesToExclude
+    requestQueryParam: requestQueryParamsToExclude
+    requestUri: requestUrisToExclude
+  Exclude:
+  - kind
+
+InterconnectAttachment:
+  Exclude:
+  - cloudRouterIpv6InterfaceId
+  - customerRouterIpv6InterfaceId
+  - configurationConstraints.bgpPeerAsnRanges.min
+  - configurationConstraints.bgpPeerAsnRanges.max
+
+ExternalVpnGateway:
+  Mapping:
+    interface: interfaces
+
+ForwardingRule:
+  Mapping:
+    ipAddress: IPAddress
+    ipProtocol: IPProtocol
+  Exclude:
+    - metadataFilters.filterMatchCriteria # GlobalForwardingRule
+    - metadataFilters.filterLabels.name # GlobalForwardingRule
+    - metadataFilters.filterLabels.value # GlobalForwardingRule
+    - serviceDirectoryRegistrations.serviceDirectoryRegion # GlobalForwardingRule
+
+HttpsHealthCheck:
+  Exclude:
+  - kind
+
+InstanceTemplate:
+  Mapping:
+    disk: disks
+    networkInterface: networkInterfaces
+    accessConfig: accessConfigs
+    ipv6AccessConfig: ipv6AccessConfigs
+    aliasIpRange: aliasIpRanges
+    networkIp : networkIP
+    kmsKeySelfLink: kmsKeyName
+  ExactMapping:
+    disks.initializeParams.diskName: disk.diskName
+    disks.initializeParams.diskType: disk.diskType
+    disks.initializeParams.labels: disk.labels
+    disks.initializeParams.provisionedIops: isk.provisionedIops
+    disks.initializeParams.provisionedThroughput: disk.provisionedThroughput
+    disks.initializeParams.resourceManagerTags: disk.resourceManagerTags
+    disks.initializeParams.resourcePolicies: disk.resourcePolicies
+    disks.initializeParams.sourceImage: disk.sourceImage
+    disks.initializeParams.sourceSnapshot: disk.sourceSnapshot
+  Exclude:
+  - disks.initializeParams.diskSizeGb
+
 Instance:
   Mapping:
     attachedDisk: "disks"
@@ -132,6 +271,52 @@ Network:
   - routingConfig.effectiveBgpAlwaysCompareMed
   - routingConfig.effectiveBgpInterRegionCost
 
+NetworkEdgeSecurityService:
+  Exclude:
+  - kind
+
+NetworkEndpointGroups:
+  Exclude:
+  - loadBalancer.network
+  - loadBalancer.subnetwork
+  - loadBalancer.defaultPort
+
+NodeGroup:
+  ExactMapping:
+    shareSettings.projectMap: shareSettings.projectMap.id
+  Exclude:
+  - status
+  - fingerprint
+  - locationHint
+
+PublicAdvertisedPrefix:
+  Exclude:
+  - status
+  - fingerprint
+
+PublicDelegatedPrefix:
+  Exclude:
+  - fingerprint
+
+ResourcePolicy:
+  Exclude:
+  - snapshotSchedulePolicy.schedule.hourlySchedule.duration
+  - snapshotSchedulePolicy.schedule.dailySchedule.duration
+  - snapshotSchedulePolicy.schedule.weeklySchedule.dayOfWeeks.duration
+
+RouterInterface:
+  Mapping:
+    vpnTunnel: linkedVpnTunnel
+    interconnectAttachment: linkedInterconnectAttachment
+
+RouterNat:
+  Mapping:
+    subnetwork: subnetworks
+
+ServiceAttachment:
+  Exclude:
+  - producerForwardingRule
+
 Route:
   Exclude:
   - kind
@@ -144,30 +329,6 @@ PerInstanceConfig:
   Exclude:
   - status
   - fingerprint
-
-Autoscaler:
-  Mapping:
-    minReplicas: minNumReplicas
-    maxReplicas: maxNumReplicas
-    cooldownPeriod: coolDownPeriodSec
-    metric: customMetricUtilizations
-    type: utilizationTargetType
-  ExactMapping:
-    autoscalingPolicy.cpuUtilization.utilizationTarget: autoscalingPolicy.cpuUtilization.target
-    autoscalingPolicy.loadBalancingUtilization.utilizationTarget: autoscalingPolicy.loadBalancingUtilization.target
-    autoscalingPolicy.customMetricUtilizations.utilizationTarget: autoscalingPolicy.metric.target
-    autoscalingPolicy.customMetricUtilizations.metric: autoscalingPolicy.metric.name
-    autoscalingPolicy.scalingSchedules: autoscalingPolicy.scalingSchedules.name
-  Exclude:
-  - autoscalingPolicy.scaleDownControl.maxScaledDownReplicas.calculated
-  - autoscalingPolicy.scaleInControl.maxScaledInReplicas.calculated
-  - kind
-  - region
-  - status
-  - statusDetails.message
-  - statusDetails.type
-  - recommendedSize
-  - scalingScheduleStatus
 
 InstanceGroupManager:
   Mapping:
@@ -237,3 +398,34 @@ BackendService:
   - connectionTrackingPolicy.connectionPersistenceOnUnhealthyBackends
   - connectionTrackingPolicy.idleTimeoutSec
   - connectionTrackingPolicy.enableStrongAffinity
+
+SslCertificate:
+  Exclude:
+  - managed.status
+  - managed.domainStatus
+
+SslPolicy:
+  Exclude:
+  - kind
+
+VpnGateway:
+  Exclude:
+  - labelFingerprint
+
+UrlMap:
+  Mapping:
+    pathMatcher: pathMatchers
+    hostRule: hostRules
+    pathRule: pathRules
+    test: tests
+    errorResponseRule: errorResponseRules
+  ExactMapping:
+    hostRules.pathMatcher: hostRule.pathMatcher
+
+TargetSslProxy:
+  Mapping:
+    backendService: service
+
+TargetTcpProxy:
+  Mapping:
+    backendService: service
