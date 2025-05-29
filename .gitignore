@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.mypy
+venv/
+.mypy_cache
+*.json
+*.yaml
+!config.yaml
+*-global-reports-*/

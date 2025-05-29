@@ -1,0 +1,431 @@
+AttachedDisk:
+  Exclude:
+  - type
+  - savedState
+  - source # ComputedInstance
+  - boot # ComputedInstance
+  - initializeParams.licenses
+
+Autoscaler:
+  Mapping:
+    minReplicas: minNumReplicas
+    maxReplicas: maxNumReplicas
+    cooldownPeriod: coolDownPeriodSec
+    metric: customMetricUtilizations
+    type: utilizationTargetType
+  ExactMapping:
+    autoscalingPolicy.cpuUtilization.utilizationTarget: autoscalingPolicy.cpuUtilization.target
+    autoscalingPolicy.loadBalancingUtilization.utilizationTarget: autoscalingPolicy.loadBalancingUtilization.target
+    autoscalingPolicy.customMetricUtilizations.utilizationTarget: autoscalingPolicy.metric.target
+    autoscalingPolicy.customMetricUtilizations.metric: autoscalingPolicy.metric.name
+    autoscalingPolicy.scalingSchedules: autoscalingPolicy.scalingSchedules.name
+  Exclude:
+  - autoscalingPolicy.scaleDownControl.maxScaledDownReplicas.calculated
+  - autoscalingPolicy.scaleInControl.maxScaledInReplicas.calculated
+  - kind
+  - region
+  - status
+  - statusDetails.message
+  - statusDetails.type
+  - recommendedSize
+  - scalingScheduleStatus
+
+BackendBucket:
+  Exclude:
+  - kind
+
+DiskAsyncReplication:
+  ExactMapping:
+    disk: primaryDisk
+
+Firewall:
+  Mapping:
+    allow: allowed
+    protocol: IPProtocol
+    deny: denied
+  Exclude:
+  - logConfig.enable
+
+Image:
+  Mapping:
+    kmsKeySelfLink: kmsKeyName
+
+InstanceGroup:
+  Mapping:
+    namedPort: namedPorts
+
+Reservation:
+  ExactMapping:
+   shareSettings.projectMap: shareSettings.projectMap.id
+
+SecurityPolicy:
+  Mapping:
+    rule: rules
+    exclusion: exclusions
+    requestHeader: requestHeadersToExclude
+    value: val
+    operator: op
+    requestCookie: requestCookiesToExclude
+    requestQueryParam: requestQueryParamsToExclude
+    requestUri: requestUrisToExclude
+  Exclude:
+  - kind
+  - rules.kind
+  - userDefinedFields.name # RegionSecurityPolicy
+  - userDefinedFields.base # RegionSecurityPolicy
+  - userDefinedFields.offset # RegionSecurityPolicy
+  - userDefinedFields.size # RegionSecurityPolicy
+  - userDefinedFields.mask # RegionSecurityPolicy
+  - adaptiveProtectionConfig.layer7DdosDefenseConfig.thresholdConfigs.trafficGranularityConfigs.value # Implemented
+
+SecurityPolicyRule:
+  Mapping:
+    exclusion: exclusions
+    requestHeader: requestHeadersToExclude
+    value: val
+    operator: op
+    requestCookie: requestCookiesToExclude
+    requestQueryParam: requestQueryParamsToExclude
+    requestUri: requestUrisToExclude
+  Exclude:
+  - kind
+
+InterconnectAttachment:
+  Exclude:
+  - cloudRouterIpv6InterfaceId
+  - customerRouterIpv6InterfaceId
+  - configurationConstraints.bgpPeerAsnRanges.min
+  - configurationConstraints.bgpPeerAsnRanges.max
+
+ExternalVpnGateway:
+  Mapping:
+    interface: interfaces
+
+ForwardingRule:
+  Mapping:
+    ipAddress: IPAddress
+    ipProtocol: IPProtocol
+  Exclude:
+    - metadataFilters.filterMatchCriteria # GlobalForwardingRule
+    - metadataFilters.filterLabels.name # GlobalForwardingRule
+    - metadataFilters.filterLabels.value # GlobalForwardingRule
+    - serviceDirectoryRegistrations.serviceDirectoryRegion # GlobalForwardingRule
+
+HttpsHealthCheck:
+  Exclude:
+  - kind
+
+InstanceTemplate:
+  Mapping:
+    disk: disks
+    networkInterface: networkInterfaces
+    accessConfig: accessConfigs
+    ipv6AccessConfig: ipv6AccessConfigs
+    aliasIpRange: aliasIpRanges
+    networkIp : networkIP
+    kmsKeySelfLink: kmsKeyName
+  ExactMapping:
+    disks.initializeParams.diskName: disk.diskName
+    disks.initializeParams.diskType: disk.diskType
+    disks.initializeParams.labels: disk.labels
+    disks.initializeParams.provisionedIops: isk.provisionedIops
+    disks.initializeParams.provisionedThroughput: disk.provisionedThroughput
+    disks.initializeParams.resourceManagerTags: disk.resourceManagerTags
+    disks.initializeParams.resourcePolicies: disk.resourcePolicies
+    disks.initializeParams.sourceImage: disk.sourceImage
+    disks.initializeParams.sourceSnapshot: disk.sourceSnapshot
+  Exclude:
+  - disks.initializeParams.diskSizeGb
+
+Instance:
+  Mapping:
+    attachedDisk: "disks"
+    bootDisk: "disks"
+    scratchDisk: "disks"
+    networkInterface: "networkInterfaces"
+    ipv6AccessConfig: "ipv6AccessConfigs"
+    aliasIpRange: "aliasIpRanges"
+    accessConfig:  "accessConfigs"
+    currentStatus: "status"
+    networkIp: "networkIP"
+    natIp: "natIP"
+    image: "sourceImage"
+    size: "diskSizeGb"
+    type: "diskType"
+    serviceAccount: "serviceAccounts"
+    guestAccelerator: "guestAccelerators"
+    type: "acceleratorType"
+    count: "acceleratorCount"
+  ExactMapping:
+    tags.items: "tags"
+    tags.fingerprint: "tagsFingerprint"
+    disks.diskEncryptionKey.rawKey: "attachedDisk.diskEncryptionKeyRaw"
+    disks.diskEncryptionKey.sha256: "attachedDisk.diskEncryptionKeySha256"
+    disks.diskEncryptionKey.kmsKeyName: "attachedDisk.kmsKeySelfLink"
+    metadata.fingerprint: "metadataFingerprint"
+    metadata.items.key: "metadata"
+    metadata.items.value: "metadata"
+    reservationAffinity.consumeReservationType: "reservationAffinity.type"
+    reservationAffinity.key: "reservationAffinity.specificReservation.key"
+    reservationAffinity.values: "reservationAffinity.specificReservation.values"
+    displayDevice.enableDisplay: "enableDisplay"
+  Exclude:
+  - kind
+  - statusMessage
+  - networkInterfaces.kind
+  - scheduling.locationHint
+  - networkInterfaces.accessConfigs.kind
+  - networkInterfaces.ipv6AccessConfigs.kind
+  - networkInterfaces.fingerprint # not sure if the user need it
+  - networkInterfaces.networkAttachment # beta
+  - disks.kind
+  - disks.type
+  - disks.savedState
+  - disks.index
+  - disks.boot
+  - disks.initializeParams.licenses
+  - disks.licenses
+  - disks.forceAttach
+  - disks.shieldedInstanceInitialState.pk.content
+  - disks.shieldedInstanceInitialState.pk.fileType
+  - disks.shieldedInstanceInitialState.keks.content
+  - disks.shieldedInstanceInitialState.keks.fileType
+  - disks.shieldedInstanceInitialState.dbs.content
+  - disks.shieldedInstanceInitialState.dbs.fileType
+  - disks.shieldedInstanceInitialState.dbxs.content
+  - disks.shieldedInstanceInitialState.dbxs.fileType
+  - metadata.kind
+  - startRestricted
+  - sourceMachineImage
+  - fingerprint
+  - privateIpv6GoogleAccess
+  - satisfiesPzs
+  - satisfiesPzi
+
+Disk:
+  Mapping:
+    size: sizeGb
+    image: sourceImage
+    snapshot: sourceSnapshot
+    kmsKeySelfLink: kmsKeyName
+    disk: diskId
+  Exclude:
+  - kind
+  - status
+  - options
+  - region
+  - replicaZones
+  - licenseCodes
+  - satisfiesPzs
+  - satisfiesPzi
+  - locationHint
+  - asyncPrimaryDisk.consistencyGroupPolicy
+  - asyncPrimaryDisk.consistencyGroupPolicyId
+  - asyncSecondaryDisks
+  - resourceStatus.asyncPrimaryDisk.state
+  - resourceStatus.asyncSecondaryDisks
+  - sourceConsistencyGroupPolicy
+  - sourceConsistencyGroupPolicyId
+  - sourceInstantSnapshotId
+
+Snapshot:
+  Mapping:
+    kmsKeySelfLink: kmsKeyName
+  Exclude:
+  - kind
+  - status
+  - sourceDiskId
+  - storageBytesStatus
+  - licenseCodes
+  - autoCreated
+  - downloadBytes
+  - satisfiesPzs
+  - locationHint
+  - sourceSnapshotSchedulePolicy
+  - sourceSnapshotSchedulePolicyId
+  - sourceInstantSnapshotId
+  - creationSizeBytes
+  - satisfiesPzi
+
+Subnetwork:
+  Mapping:
+    secondaryIpRange: secondaryIpRanges
+  Exclude:
+  - kind
+  - logConfig.enable
+
+Network:
+  Mapping:
+    gatewayIpv4: gatewayIPv4
+  ExactMapping:
+    routingConfig.routingMode: routingMode
+    routingConfig.bgpBestPathSelectionMode: bgpBestPathSelectionMode
+    routingConfig.bgpAlwaysCompareMed: bgpAlwaysCompareMed
+    routingConfig.bgpInterRegionCost: bgpInterRegionCost
+  Exclude:
+  - kind
+  - IPv4Range
+  - selfLinkWithId
+  - subnetworks
+  - firewallPolicy
+  - routingConfig.effectiveBgpAlwaysCompareMed
+  - routingConfig.effectiveBgpInterRegionCost
+
+NetworkEdgeSecurityService:
+  Exclude:
+  - kind
+
+NetworkEndpointGroups:
+  Exclude:
+  - loadBalancer.network
+  - loadBalancer.subnetwork
+  - loadBalancer.defaultPort
+
+NodeGroup:
+  ExactMapping:
+    shareSettings.projectMap: shareSettings.projectMap.id
+  Exclude:
+  - status
+  - fingerprint
+  - locationHint
+
+PublicAdvertisedPrefix:
+  Exclude:
+  - status
+  - fingerprint
+
+PublicDelegatedPrefix:
+  Exclude:
+  - fingerprint
+
+ResourcePolicy:
+  Exclude:
+  - snapshotSchedulePolicy.schedule.hourlySchedule.duration
+  - snapshotSchedulePolicy.schedule.dailySchedule.duration
+  - snapshotSchedulePolicy.schedule.weeklySchedule.dayOfWeeks.duration
+
+RouterInterface:
+  Mapping:
+    vpnTunnel: linkedVpnTunnel
+    interconnectAttachment: linkedInterconnectAttachment
+
+RouterNat:
+  Mapping:
+    subnetwork: subnetworks
+
+ServiceAttachment:
+  Exclude:
+  - producerForwardingRule
+
+Route:
+  Exclude:
+  - kind
+
+PerInstanceConfig:
+  ExactMapping:
+   preservedState.disks: preservedState.disk.source
+   preservedState.internalIPs: preservedState.internalIp.ipAddress.address
+   preservedState.externalIPs: preservedState.externalIp.ipAddress.address
+  Exclude:
+  - status
+  - fingerprint
+
+InstanceGroupManager:
+  Mapping:
+   version: versions
+   namedPort: namedPorts
+  ExactMapping:
+    allInstancesConfig..metadata: allInstancesConfig.metadata
+    allInstancesConfig..labels: allInstancesConfig.labels
+    updatePolicy.maxUnavailable.fixed: updatePolicy.maxUnavailableFixed
+    updatePolicy.maxUnavailable.percent: updatePolicy.maxUnavailablePercent
+    updatePolicy.maxSurge.fixed: updatePolicy.maxSurgeFixed
+    updatePolicy.maxSurge.percent: updatePolicy.maxSurgePercent
+    status.stateful.isStateful: status.stateful
+    status.allInstancesConfig.effective: status.allInstancesConfig
+    status.versionTarget.isReached: status.versionTarget
+  Exclude:
+  - kind
+  - region
+  - instanceTemplate
+  - versions.targetSize.calculated
+  - currentActions.none
+  - currentActions.creatingWithoutRetries
+  - status.stateful.hasStatefulConfig
+  - status.stateful.perInstanceConfigs.allEffective
+  - status.allInstancesConfig.currentRevision
+  - status.versionTarget.isReached
+  - status.autoscaler
+  - updatePolicy.maxSurge.calculated
+  - updatePolicy.maxUnavailable.calculated
+  - satisfiesPzi
+  - satisfiesPzs
+  - currentActions.verifying
+  - currentActions.recreating
+  - currentActions.suspending
+  - currentActions.resuming
+  - currentActions.stopping
+  - currentActions.starting
+  - currentActions.creating
+  - currentActions.deleting
+  - currentActions.abandoning
+  - currentActions.restarting
+  - currentActions.refreshing
+
+FirewallPolicy:
+  Exclude:
+  - kind
+  - rules.kind
+  - packetMirroringRules.kind
+  - displayName
+
+BackendService:
+  Mapping:
+    backend: backends
+    enableCdn: enableCDN
+  ExactMapping:
+    connectionDraining.drainingTimeoutSec: connectionDrainingTimeoutSec
+  Exclude:
+  - port
+  - securitySettings.authentication
+  - backends.failover # Implemented in RegionBackendService
+  - failoverPolicy.disableConnectionDrainOnFailover # RegionBackendService
+  - failoverPolicy.dropTrafficIfUnhealthy # RegionBackendService
+  - failoverPolicy.failoverRatio # RegionBackendService
+  - network # RegionBackendService
+  - subsetting.policy # RegionBackendService
+  - connectionTrackingPolicy.trackingMode
+  - connectionTrackingPolicy.connectionPersistenceOnUnhealthyBackends
+  - connectionTrackingPolicy.idleTimeoutSec
+  - connectionTrackingPolicy.enableStrongAffinity
+
+SslCertificate:
+  Exclude:
+  - managed.status
+  - managed.domainStatus
+
+SslPolicy:
+  Exclude:
+  - kind
+
+VpnGateway:
+  Exclude:
+  - labelFingerprint
+
+UrlMap:
+  Mapping:
+    pathMatcher: pathMatchers
+    hostRule: hostRules
+    pathRule: pathRules
+    test: tests
+    errorResponseRule: errorResponseRules
+  ExactMapping:
+    hostRules.pathMatcher: hostRule.pathMatcher
+
+TargetSslProxy:
+  Mapping:
+    backendService: service
+
+TargetTcpProxy:
+  Mapping:
+    backendService: service
