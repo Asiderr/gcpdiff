@@ -1,10 +1,36 @@
 AttachedDisk:
+  RelatedResources:
+    disk: initializeParams
+  Mapping:
+    name: diskName
+    sourceImageId: sourceImage
+    kmsKeySelfLink: kmsKeyName
+    sourceSnapshotId: sourceSnapshot
+    size: diskSizeGb
+    replicaZones: zone
+  ExactMapping:
+    diskEncryptionKey.rawKey: initializeParams.diskEncryptionKey.rawKey
+    diskEncryptionKey.rsaEncryptedKey: initializeParams.diskEncryptionKey.rsaEncryptedKey
+    diskEncryptionKey.kmsKeyName: initializeParams.diskEncryptionKey.kmsKeySelfLink
+    diskEncryptionKey.sha256: initializeParams.diskEncryptionKey.sha256
+    diskEncryptionKey.kmsKeyServiceAccount: initializeParams.diskEncryptionKey.kmsKeyServiceAccount
+    initializeParams.diskType: disk
+    initializeParams.resourceManagerTags: initializeParams.params.resourceManagerTags
   Exclude:
   - type
   - savedState
   - source # ComputedInstance
   - boot # ComputedInstance
   - initializeParams.licenses
+  - shieldedInstanceInitialState.pk.content
+  - shieldedInstanceInitialState.pk.fileType
+  - shieldedInstanceInitialState.keks.content
+  - shieldedInstanceInitialState.keks.fileType
+  - shieldedInstanceInitialState.dbs.content
+  - shieldedInstanceInitialState.dbs.fileType
+  - shieldedInstanceInitialState.dbxs.content
+  - shieldedInstanceInitialState.dbxs.fileType
+  - initializeParams.replicaZones
 
 Autoscaler:
   Mapping:
@@ -57,6 +83,23 @@ InstanceGroup:
 Reservation:
   ExactMapping:
    shareSettings.projectMap: shareSettings.projectMap.id
+  Exclude:
+  - resourceStatus.specificSkuAllocation.sourceInstanceTemplateId
+  - resourceStatus.specificSkuAllocation.utilizations
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.type
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.canReschedule
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.windowStartTime
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.windowEndTime
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.latestWindowStartTime
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.maintenanceStatus
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.maintenanceOnShutdown
+  - resourceStatus.reservationMaintenance.maintenanceOngoingCount
+  - resourceStatus.reservationMaintenance.maintenancePendingCount
+  - resourceStatus.reservationMaintenance.schedulingType
+  - aggregateReservation.inUseResources.accelerator.acceleratorCount
+  - aggregateReservation.inUseResources.accelerator.acceleratorType
+  - resourceStatus.reservationBlockCount
+  - reservationMode
 
 SecurityPolicy:
   Mapping:
@@ -124,6 +167,12 @@ InstanceTemplate:
     aliasIpRange: aliasIpRanges
     networkIp : networkIP
     kmsKeySelfLink: kmsKeyName
+    natIp: natIP
+    serviceAccount: serviceAccounts
+    guestAccelerator: guestAccelerators
+    acceleratorType: type
+    acceleratorCount: count
+    shieldedInstanceConfig: shieldedVmConfig
   ExactMapping:
     disks.initializeParams.diskName: disk.diskName
     disks.initializeParams.diskType: disk.diskType
@@ -134,8 +183,34 @@ InstanceTemplate:
     disks.initializeParams.resourcePolicies: disk.resourcePolicies
     disks.initializeParams.sourceImage: disk.sourceImage
     disks.initializeParams.sourceSnapshot: disk.sourceSnapshot
+    tags.items: tags
+    tags.fingerprint: tagsFingerprint
+    metadata.fingerprint: metadataFingerprint
+    reservationAffinity.consumeReservationType: reservationAffinity.type
+    reservationAffinity.key: reservationAffinity.specificReservation.key
+    reservationAffinity.values: reservationAffinity.specificReservation.values
+    displayDevice.enableDisplay: enableDisplay
   Exclude:
   - disks.initializeParams.diskSizeGb
+  - sourceInstanceParams.diskConfigs.autoDelete
+  - disks.guestOsFeatures.type
+  - disks.shieldedInstanceInitialState.pk.content
+  - disks.shieldedInstanceInitialState.pk.fileType
+  - disks.shieldedInstanceInitialState.keks.content
+  - disks.shieldedInstanceInitialState.keks.fileType
+  - disks.shieldedInstanceInitialState.dbs.content
+  - disks.shieldedInstanceInitialState.dbs.fileType
+  - disks.shieldedInstanceInitialState.dbxs.content
+  - disks.shieldedInstanceInitialState.dbxs.fileType
+  - metadata.items.key
+  - metadata.items.value
+  - scheduling.locationHint
+  - privateIpv6GoogleAccess
+  - sourceInstance
+  - sourceInstanceParams.diskConfigs.deviceName
+  - sourceInstanceParams.diskConfigs.instantiateFrom
+  - sourceInstanceParams.diskConfigs.autoDelete
+  - sourceInstanceParams.diskConfigs.customImage
 
 Instance:
   Mapping:
@@ -317,6 +392,12 @@ ServiceAttachment:
   Exclude:
   - producerForwardingRule
 
+Router:
+  RelatedResources:
+    RouterPeer: bgpPeers
+    RouterNat: nats
+    RouterInterface: interfaces
+
 Route:
   Exclude:
   - kind
@@ -373,6 +454,10 @@ InstanceGroupManager:
   - currentActions.refreshing
 
 FirewallPolicy:
+  RelatedResources:
+    FirewallPolicyRule: rules
+    PacketMirroringRule: packetMirroringRules
+    FirewallPolicyAssociation: associations
   Exclude:
   - kind
   - rules.kind

@@ -69,14 +69,33 @@ class DiffGlobalReport(DiffReport):
         for component in api_schemas_list:
             self.log.debug(f"Trying to match {component} with Terraform"
                            " resource")
-            if not self.get_tf_component_schema(component, self.api,
-                                                save_file=self.save_file):
+            related_resources = {component: None}
+            try:
+                related_resources.update(
+                    self.yaml_config[component]["RelatedResources"]
+                )
+            except KeyError:
+                pass
+
+            tf_schemas = {}
+            for resource, _ in related_resources.items():
+                if not self.get_tf_component_schema(
+                    resource,
+                    self.api,
+                    save_file=self.save_file
+                ):
+                    self.log.error("Could not get Terraform "
+                                   f"schema for {resource}")
+                    continue
+                tf_schemas.update({resource: self.component_tf_schema})
+
+            if not tf_schemas:
                 self.log.debug("Could not get matching Terraform resource for"
                                f" {component}")
                 not_matching_api.append(component)
                 continue
             matching_schemas.update(
-                {component: self.component_tf_schema.copy()}
+                {component: tf_schemas}
             )
 
         self.log.debug("Create directory for component reports and "

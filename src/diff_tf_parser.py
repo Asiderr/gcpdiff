@@ -276,7 +276,7 @@ class DiffTfParser:
         except KeyError:
             pass
 
-    def get_tf_fields(self):
+    def get_tf_fields(self, prepend=None):
         """
         Extracts Terraform field keys from the component schema and populates
         `tf_field_list`.
@@ -295,7 +295,10 @@ class DiffTfParser:
             return False
 
         self.tf_field_list = []
-        self._get_tf_field('', self.component_tf_schema)
+        if not prepend:
+            self._get_tf_field('', self.component_tf_schema)
+        else:
+            self._get_tf_field(prepend, self.component_tf_schema)
 
         if not self.tf_field_list:
             self.log.error("Failed to get Terraform component fields!")

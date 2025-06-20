@@ -210,8 +210,31 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             exit(1)
 
         self.log.info(f"Getting {self.component} Terraform Schema")
-        if not self.get_tf_component_schema(self.component, self.api,
-                                            self.save_file):
+        related_resources = {self.component: None}
+        try:
+            related_resources.update(
+                self.yaml_config[self.component]["RelatedResources"]
+            )
+        except KeyError:
+            pass
+
+        tf_schemas = {}
+        main_component = None
+        for resource, prepend in related_resources.items():
+            if not self.get_tf_component_schema(
+                resource,
+                self.api,
+                save_file=self.save_file
+            ):
+                self.log.error("Could not get Terraform "
+                               f"schema for {resource}")
+            tf_schemas.update({resource: self.component_tf_schema})
+            if not prepend:
+                main_component = self.tf_resource_name
+
+        if main_component:
+            self.tf_resource_name = main_component
+        if not tf_schemas:
             self.log.error(
                 f"Cannot get Terraform {self.component} schema! Exiting..."
             )
@@ -219,13 +242,18 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             exit(1)
 
         self.log.info(f"Getting {self.component} Terraform Schema fields")
-        if not self.get_tf_fields():
-            self.log.error(
-                f"Cannot get Terraform {self.component} schema fields! "
-                "Exiting..."
-            )
-            os.chdir(self.cwd)
-            exit(1)
+        tf_fields = []
+        for resource, schema in tf_schemas.items():
+            self.component_tf_schema = schema
+            if not self.get_tf_fields(prepend=related_resources[resource]):
+                self.log.error(
+                    f"Cannot get Terraform {resource} schema fields! "
+                    "Exiting..."
+                )
+                os.chdir(self.cwd)
+                exit(1)
+            tf_fields = list(set(tf_fields + self.tf_field_list))
+        self.tf_field_list = tf_fields.copy()
 
         self.log.debug(f"{self.component} Output Only API fields:"
                        f" {self.api_output_only}")
