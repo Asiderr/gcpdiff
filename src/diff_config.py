@@ -12,7 +12,11 @@ API_URLS = {
     "gke-ent": "https://gkehub.googleapis.com/$discovery/rest?version=v1",
     "gke-backup": (
         "https://gkebackup.googleapis.com/$discovery/rest?version=v1"
-    )
+    ),
+    "acc-content-manager": (
+        "https://accesscontextmanager.googleapis.com/$discovery/"
+        "rest?version=v1"
+    ),
 }
 
 TF_RESOURCES = {
@@ -22,6 +26,7 @@ TF_RESOURCES = {
     "gke-std-beta": "google_container_",
     "gke-ent": "google_gke_hub_",
     "gke-backup": "google_gke_backup_",
+    "acc-content-manager": "google_access_context_manager_",
 }
 
 YAML_CONFIG_PATH = (
