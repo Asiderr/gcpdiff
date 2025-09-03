@@ -35,7 +35,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         self.verbose = self._cmd_input.verbose
         self.diff_log(verbose=self.verbose)
 
-    def _load_old_diff_report(self):
+    def load_old_diff_report(self):
         """
         Loads and parses the old YAML diff report.
 
@@ -57,7 +57,8 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             )
 
         if not os.path.exists(self.old_yaml_report_path):
-            self.log.error("Wrong old report path!")
+            self.log.error("Wrong old report path: "
+                           f"{self.old_yaml_report_path}!")
             return False
 
         with open(self.old_yaml_report_path, "r") as yaml_old_report:
@@ -158,7 +159,7 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
                 - False if the old YAML report could not be loaded.
         """
         self.log.info("Getting old YAML report")
-        if not self._load_old_diff_report():
+        if not self.load_old_diff_report():
             self.log.error("Cannot get old YAML report! Exiting...")
             return False
 

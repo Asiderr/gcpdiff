@@ -84,7 +84,7 @@ class DiffGlobalReport(DiffReport):
                     self.api,
                     save_file=self.save_file
                 ):
-                    self.log.error("Could not get Terraform "
+                    self.log.debug("Could not get Terraform "
                                    f"schema for {resource}")
                     continue
                 tf_schemas.update({resource: self.component_tf_schema})
