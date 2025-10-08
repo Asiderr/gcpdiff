@@ -75,6 +75,12 @@ Firewall:
 Image:
   Mapping:
     kmsKeySelfLink: kmsKeyName
+  Exclude:
+  - rawDisk.sha1Checksum
+  - imageEncryptionKey.sha256
+  - sourceDiskEncryptionKey.sha256
+  - sourceImageEncryptionKey.sha256
+  - sourceSnapshotEncryptionKey.sha256
 
 InstanceGroup:
   Mapping:
@@ -393,6 +399,21 @@ Subnetwork:
   Exclude:
   - kind
   - logConfig.enable
+  - utilizationDetails.ipv4Utilizations.rangeName
+  - utilizationDetails.ipv4Utilizations.totalAllocatedIp
+  - utilizationDetails.ipv4Utilizations.totalFreeIp
+  - utilizationDetails.externalIpv6InstanceUtilization.totalAllocatedIp.high
+  - utilizationDetails.externalIpv6InstanceUtilization.totalAllocatedIp.low
+  - utilizationDetails.externalIpv6InstanceUtilization.totalFreeIp.high
+  - utilizationDetails.externalIpv6InstanceUtilization.totalFreeIp.low
+  - utilizationDetails.externalIpv6LbUtilization.totalAllocatedIp.high
+  - utilizationDetails.externalIpv6LbUtilization.totalAllocatedIp.low
+  - utilizationDetails.externalIpv6LbUtilization.totalFreeIp.high
+  - utilizationDetails.externalIpv6LbUtilization.totalFreeIp.low
+  - utilizationDetails.internalIpv6Utilization.totalAllocatedIp.high
+  - utilizationDetails.internalIpv6Utilization.totalAllocatedIp.low
+  - utilizationDetails.internalIpv6Utilization.totalFreeIp.high
+  - utilizationDetails.internalIpv6Utilization.totalFreeIp.low
 
 Network:
   Mapping:
@@ -410,6 +431,24 @@ Network:
   - firewallPolicy
   - routingConfig.effectiveBgpAlwaysCompareMed
   - routingConfig.effectiveBgpInterRegionCost
+  - peerings.name
+  - peerings.network
+  - peerings.autoCreateRoutes
+  - peerings.exportCustomRoutes
+  - peerings.importCustomRoutes
+  - peerings.exchangeSubnetRoutes
+  - peerings.exportSubnetRoutesWithPublicIp
+  - peerings.importSubnetRoutesWithPublicIp
+  - peerings.stackType
+  - peerings.updateStrategy
+  - peerings.connectionStatus.updateStrategy
+  - peerings.connectionStatus.trafficConfiguration.stackType
+  - peerings.connectionStatus.trafficConfiguration.importCustomRoutesFromPeer
+  - peerings.connectionStatus.trafficConfiguration.exportCustomRoutesToPeer
+  - peerings.connectionStatus.trafficConfiguration.importSubnetRoutesWithPublicIpFromPeer
+  - peerings.connectionStatus.trafficConfiguration.exportSubnetRoutesWithPublicIpToPeer
+  - peerings.connectionStatus.consensusState.deleteStatus
+  - peerings.connectionStatus.consensusState.updateStatus
 
 NetworkEdgeSecurityService:
   Exclude:
@@ -548,6 +587,10 @@ BackendService:
   - connectionTrackingPolicy.connectionPersistenceOnUnhealthyBackends
   - connectionTrackingPolicy.idleTimeoutSec
   - connectionTrackingPolicy.enableStrongAffinity
+  - subsetting.subsetSize
+  - haPolicy.fastIPMove
+  - haPolicy.leader.backendGroup
+  - haPolicy.leader.networkEndpoint.instance
 
 SslCertificate:
   Exclude:
