@@ -67,6 +67,13 @@ class DiffGlobalReport(DiffReport):
             exit(1)
 
         for component in api_schemas_list:
+            if component == "KeyRing":
+                continue
+            origin_component = component
+            if "GoogleCloudApigeeV1" in component:
+                component = component.split("GoogleCloudApigeeV1")[-1]
+            if "GoogleCloudAiplatformV1beta1" in component:
+                component = component.split("GoogleCloudAiplatformV1beta1")[-1]
             self.log.debug(f"Trying to match {component} with Terraform"
                            " resource")
             related_resources = {component: None}
@@ -91,11 +98,11 @@ class DiffGlobalReport(DiffReport):
 
             if not tf_schemas:
                 self.log.debug("Could not get matching Terraform resource for"
-                               f" {component}")
-                not_matching_api.append(component)
+                               f" {origin_component}")
+                not_matching_api.append(origin_component)
                 continue
             matching_schemas.update(
-                {component: tf_schemas}
+                {origin_component: tf_schemas}
             )
 
         self.log.debug("Create directory for component reports and "
@@ -140,11 +147,16 @@ class DiffGlobalReport(DiffReport):
                                  self.eliminated_gaps,
                                  self.remaining_gaps])
 
+        total_api_specific_fiels = (
+            total_fields_number - total_api_missing - total_api_implemented
+        )
+
         self.log.info("Number of resources analyzed:"
                       f" {len(matching_schemas)}")
         self.log.info(f"Total fields number: {total_fields_number}")
-        self.log.info(f"Total api missing: {total_api_missing}")
+        self.log.info(f"Total api specific fields: {total_api_specific_fiels}")
         self.log.info(f"Total api implemented: {total_api_implemented}")
+        self.log.info(f"Total api missing: {total_api_missing}")
 
 
 if __name__ == "__main__":
