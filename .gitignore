@@ -8,4 +8,6 @@ venv/
 *.json
 *.yaml
 !config.yaml
+!aws_config.yaml
 *-global-reports-*/
+*-aws-reports-*/

@@ -109,6 +109,19 @@ class DiffTfParser:
         parts = snake.split('_')
         return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
+    def _camel_to_pascal_string(self, camel):
+        """
+        Converts a camelCase string to PascalCase.
+
+        Args:
+            camel (str): The string in camelCase format to be converted.
+
+        Returns:
+            str: The string converted to PascalCase format.
+        """
+        parts = camel.split('.')
+        return '.'.join(word[0].upper() + word[1:] for word in parts)
+
     def _snake_to_camel_schema(self, schema):
         """
         Recursively converts all dictionary keys in a nested structure from
@@ -135,6 +148,76 @@ class DiffTfParser:
             return [self._snake_to_camel_schema(item) for item in schema]
         else:
             return schema
+
+    def get_aws_tf_component_schema(self, component, save_file=False):
+        """
+        Retrieves and processes the Terraform schema for a specific AWS
+        component.
+        Args:
+            component (str): The name of the Terraform component
+                             (e.g., "instance") for which the
+                             schema is retrieved.
+            save_file (bool, optional): If `True`, the retrieved schema will
+                                        be saved to a JSON file. Defaults to
+                                        `False`.
+
+        Returns:
+            bool: Returns `True` if the schema retrieval and processing were
+                  successful, otherwise `False`.
+        """
+        if not hasattr(self, 'log'):
+            print("Error: Logger not found!")
+            return False
+
+        if not hasattr(self, 'cwd'):
+            self.log.error("Error: Current directory not set!")
+            return False
+
+        if not hasattr(self, 'terraform_versions'):
+            self.log.error("Error: Terraform versions not known!")
+            return False
+
+        if not hasattr(self, 'terraform_schemas'):
+            self.log.error("Error: Terraform schemas not set!")
+            return False
+
+        provider = "registry.terraform.io/hashicorp/aws"
+        self.tf_resource_name = f"{self._camel_to_snake_string(component)}"
+
+        try:
+            self.tf_provider_version = (
+                self.terraform_versions["provider_selections"][provider]
+            ).replace(".", "-")
+            self.log.debug(f"{provider} version: {self.tf_provider_version}")
+        except KeyError:
+            self.log.error(f"The version of {provider} not known!")
+            return False
+
+        try:
+            self.component_tf_schema = self._snake_to_camel_schema(
+                self.terraform_schemas[
+                    "provider_schemas"][
+                    provider][
+                    "resource_schemas"][
+                    self.tf_resource_name]
+            )
+        except KeyError:
+            self.log.debug(f"The specified {self.tf_resource_name} not found"
+                           " in the schema.")
+            return False
+
+        if save_file:
+            file_name = os.path.join(
+                self.cwd,
+                (f"{self.tf_resource_name}_terraform_schema_"
+                 f"{round(time.time())}.json")
+            )
+            self.log.debug(
+                f"Saving {component} schema to json file {file_name}"
+            )
+            with open(file_name, "w") as f:
+                json.dump(self.component_tf_schema, f, indent=2)
+        return True
 
     def get_tf_component_schema(self, component, api, save_file=False):
         """
@@ -276,10 +359,15 @@ class DiffTfParser:
         except KeyError:
             pass
 
-    def get_tf_fields(self, prepend=None):
+    def get_tf_fields(self, prepend=None, aws=False):
         """
         Extracts Terraform field keys from the component schema and populates
         `tf_field_list`.
+        Args:
+            prepend (str, optional): A string to prepend to each extracted
+                                     key. Defaults to `None`.
+            aws (bool, optional): If `True`, converts the extracted keys from
+                                  camelCase to PascalCase. Defaults to `False`.
 
         Returns:
             bool: True if Terraform fields were successfully extracted and
@@ -299,6 +387,12 @@ class DiffTfParser:
             self._get_tf_field('', self.component_tf_schema)
         else:
             self._get_tf_field(prepend, self.component_tf_schema)
+
+        if aws:
+            self.tf_field_list = [
+                self._camel_to_pascal_string(field)
+                for field in self.tf_field_list
+            ]
 
         if not self.tf_field_list:
             self.log.error("Failed to get Terraform component fields!")
