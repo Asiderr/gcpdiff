@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-import deepdiff
+import csv
 import os
-import yaml
 
 from datetime import datetime
 from diff_common import DiffCommon, BLUE, BOLD, RED, GREEN, YELLOW, CYAN, ENDC
@@ -9,94 +8,24 @@ from diff_api_parser import DiffApiParser
 from diff_tf_parser import DiffTfParser
 
 
-class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
+class DiffAwsReport(DiffCommon, DiffApiParser, DiffTfParser):
     def __init__(self):
         parser = self.diff_cmdline()
         parser.add_argument(
-            "-c",
-            "--component",
-            help="Terraform component that will be compared with GCP API",
-            required=True
-        )
-        parser.add_argument(
-            "-d",
-            "--diff_report",
-            help=(
-                "Old report file path that will be compared with the newest"
-                " report"
-            )
+            "-p",
+            "--base_api_schema_path",
+            required=True,
+            help="Base path to the API schemas files",
         )
         self._cmd_input = parser.parse_args()
-        self.component = self._cmd_input.component
         self.tf_config_path = self._cmd_input.terraform_config
         self.api = self._cmd_input.api
-        self.old_yaml_report_path = self._cmd_input.diff_report
+        self.base_api_schema_path = self._cmd_input.base_api_schema_path
         self.save_file = self._cmd_input.save_file
         self.verbose = self._cmd_input.verbose
         self.diff_log(verbose=self.verbose)
 
-    def load_old_diff_report(self):
-        """
-        Loads and parses the old YAML diff report.
-
-        Returns:
-            bool:
-                - `True` if the old YAML diff report is successfully loaded
-                  and parsed.
-                - `False` if there is an error with the path or loading the
-                  YAML report.
-        """
-        if not self.old_yaml_report_path:
-            self.log.error("Old YAML report path does not exist!")
-            return False
-
-        if not os.path.isabs(self.old_yaml_report_path):
-            self.old_yaml_report_path = os.path.join(
-                os.getcwd(),
-                self.old_yaml_report_path
-            )
-
-        if not os.path.exists(self.old_yaml_report_path):
-            self.log.error("Wrong old report path: "
-                           f"{self.old_yaml_report_path}!")
-            return False
-
-        with open(self.old_yaml_report_path, "r") as yaml_old_report:
-            self.yaml_old_report = yaml.safe_load(yaml_old_report)
-        if not self.yaml_old_report:
-            self.log.error("Getting old YAML report failed!")
-            return False
-        return True
-
-    def _check_new_implemented_fields(self):
-        """
-        Compares the current YAML report with the previous report to
-        identify newly implemented API fields.
-
-        Returns:
-            bool:
-                - True if the comparison completes successfully
-                  (whether or not new fields were found).
-                - False if the old YAML report could not be loaded.
-        """
-        self.log.info("Getting old YAML report")
-        if not self.load_old_diff_report():
-            self.log.error("Cannot get old YAML report! Exiting...")
-            return False
-
-        diff = deepdiff.DeepDiff(self.yaml_old_report, self.yaml_report)
-
-        if diff:
-            self.log.info(f"{BOLD}{GREEN}API fields implemented from the last "
-                          f"report:{ENDC}")
-            for _, value in diff['iterable_item_added'].items():
-                self.log.info(f"{BOLD}{GREEN}{value}{ENDC}")
-        else:
-            self.log.info(f"{BOLD}{BLUE}No new fields implemented from the "
-                          f"last report.{ENDC}")
-        return True
-
-    def component_diff_report(self, directory=None):
+    def aws_component_diff_report(self, directory=None):
         """
         Generates a difference report for a specific component's API and
         Terraform schemas. The function compares the fields between the two
@@ -114,8 +43,9 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             return False
 
         self.log.info(f"Getting {self.component} API Schema")
-        if not self.get_api_component_schema(self.component, self.api,
-                                             self.save_file):
+        if not self.get_aws_api_component_schema(self.component,
+                                                 self.api_schema_path,
+                                                 self.save_file):
             self.log.error(
                 f"Cannot get API {self.component} schema! Exiting..."
             )
@@ -143,9 +73,8 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         tf_schemas = {}
         main_component = None
         for resource, prepend in related_resources.items():
-            if not self.get_tf_component_schema(
+            if not self.get_aws_tf_component_schema(
                 resource,
-                self.api,
                 save_file=self.save_file
             ):
                 self.log.error("Could not get Terraform "
@@ -167,7 +96,8 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
         tf_fields = []
         for resource, schema in tf_schemas.items():
             self.component_tf_schema = schema
-            if not self.get_tf_fields(prepend=related_resources[resource]):
+            if not self.get_tf_fields(prepend=related_resources[resource],
+                                      aws=True):
                 self.log.error(
                     f"Cannot get Terraform {resource} schema fields! "
                     "Exiting..."
@@ -272,34 +202,16 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
                 or not self.old_yaml_report_path):
             return
 
-        if not self._check_new_implemented_fields():
-            self.log.error("Cannot compare new report with old report! "
-                           "Exiting...")
-            os.chdir(self.cwd)
-            exit(1)
-
-    def generate_diff_report(self):
+    def generate_aws_diff_report(self):
         """
-        Generates a diff report comparing the current and old API and
-        Terraform field mappings.
-
-        This method performs several tasks to generate a comprehensive diff
-        report:
-        1. It loads the YAML configuration for the diff report.
-        2. It retrieves the API schema and fields for the specified component.
-        3. It retrieves the Terraform schema and fields for the specified
-           component.
-        4. It compares the API and Terraform field lists, checking for
-           implemented, missing, and specific fields.
-        5. It excludes any fields specified in the configuration.
-        6. It prints the results of the comparison in a color-coded format.
-        7. It saves the newly generated diff report to a YAML file.
-        8. If an old YAML report path is provided, it loads the previous diff
-           report and calculates the differences using `deepdiff`.
+        Generates a comprehensive AWS diff report by comparing API schemas
+        with Terraform schemas for multiple components.
         """
-        self.date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        time_now = datetime.now()
+        self.date = time_now.strftime("%Y-%m-%d_%H-%M-%S")
+        csv_date = time_now.strftime("%-m/%-d/%Y")
         self.log.info("Getting YAML config")
-        if not self.load_config_diff_report():
+        if not self.load_config_diff_report(aws=True):
             self.log.error("Cannot get YAML config! Exiting...")
             exit(1)
 
@@ -308,23 +220,77 @@ class DiffReport(DiffCommon, DiffApiParser, DiffTfParser):
             self.log.error("Cannot change workspace directory! Exiting...")
             exit(1)
 
-        self.log.info("Getting API Schemas")
-        if not self.get_api_schemas(self.api):
-            self.log.error("Cannot get API schemas! Exiting...")
-            os.chdir(self.cwd)
-            exit(1)
-
         self.log.info("Getting Terraform Schemas")
         if not self.get_tf_schemas():
             self.log.error("Cannot get Terraform schemas! Exiting...")
             os.chdir(self.cwd)
             exit(1)
+        tf_provider_version = (
+            self.terraform_versions["provider_selections"]
+                                   ["registry.terraform.io/hashicorp/aws"]
+        ).replace(".", "-")
 
-        self.component_diff_report()
+        self.log.debug("Create directory for component reports and "
+                       "csv report file")
+        total_fields_number = 0
+        total_api_missing = 0
+        total_api_implemented = 0
+
+        reports_dir = os.path.join(self.cwd, f"{self.date}-aws-reports"
+                                   f"-v{tf_provider_version}")
+        csv_report = os.path.join(reports_dir,
+                                  f"{self.date}-aws-report"
+                                  f"-v{tf_provider_version}.csv")
+        if os.path.exists(reports_dir):
+            self.log.error("Global reports path exist! Check the"
+                           " content of this path. Exiting...")
+            exit(1)
+        else:
+            os.makedirs(reports_dir)
+
+        with open(csv_report, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Date", "Provider Version", "Resource Name",
+                             "Total Fields", "Gap Fields", "Eliminated Gaps",
+                             "Remaining Gaps"])
+
+        self.log.debug("Create reports each component")
+        for api_schema_path, component in (
+            self.yaml_config["Resources"].items()
+        ):
+            self.component = component
+            self.api_schema_path = os.path.join(
+                self.base_api_schema_path,
+                f"{api_schema_path}.json"
+            )
+            self.aws_component_diff_report(directory=reports_dir)
+            total_fields_number += self.total_fields_number
+            total_api_missing += self.remaining_gaps
+            total_api_implemented += self.eliminated_gaps
+            with open(csv_report, mode="a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([csv_date,
+                                 self.tf_provider_version,
+                                 self.tf_resource_name,
+                                 self.total_fields_number,
+                                 self.gap_fields_number,
+                                 self.eliminated_gaps,
+                                 self.remaining_gaps])
+
+        total_api_specific_fiels = (
+            total_fields_number - total_api_missing - total_api_implemented
+        )
+
+        self.log.info("Number of resources analyzed:"
+                      f" {len(self.yaml_config['Resources'])}")
+        self.log.info(f"Total fields number: {total_fields_number}")
+        self.log.info(f"Total api specific fields: {total_api_specific_fiels}")
+        self.log.info(f"Total api implemented: {total_api_implemented}")
+        self.log.info(f"Total api missing: {total_api_missing}")
 
 
 if __name__ == "__main__":
-    dr = DiffReport()
+    dr = DiffAwsReport()
 
-    dr.generate_diff_report()
+    dr.generate_aws_diff_report()
     exit(0)

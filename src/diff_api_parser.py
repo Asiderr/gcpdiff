@@ -62,6 +62,55 @@ class DiffApiParser:
 
         return True
 
+    def get_aws_api_component_schema(self, component, schema_path,
+                                     save_file=False):
+        """
+        Retrieves and processes the AWS API schemas from the provided
+        json file.
+
+        Args:
+            api_schemas (str): Path to AWS API schemas json file.
+
+        Returns:
+            bool:
+                - `True` if the API schemas are successfully set.
+                - `False` if there is an error at any step of the process
+                  (missing logger or empty API schemas).
+        """
+        if not hasattr(self, 'log'):
+            print("Error: Logger not found!")
+            return False
+
+        if not os.path.exists(schema_path):
+            self.log.error(f"AWS schema path {schema_path} does not exist!")
+            return False
+
+        with open(schema_path, "r") as f:
+            self.log.debug("Loading AWS API schemas from json file:"
+                           f" {schema_path}")
+            ref_component_api_schema = json.load(f)
+
+        self.component_api_schema = jsonref.JsonRef.replace_refs(
+                ref_component_api_schema,
+                jsonschema=True
+            )
+
+        if not self.component_api_schema:
+            self.log.error(f"{component} API schema is empty!")
+            return False
+
+        if save_file:
+            file_name = os.path.join(
+                self.cwd,
+                (f"{component}_aws_api_{round(time.time())}.json")
+            )
+            self.log.debug(
+                f"Saving {component} schema to json file {file_name}"
+            )
+            with open(file_name, "w") as f:
+                json.dump(self.component_api_schema, f, indent=2)
+        return True
+
     def get_api_component_schema(self, component, api, save_file=False):
         """
         Retrieves the API schema for a specified component and optionally
