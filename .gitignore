@@ -9,5 +9,7 @@ venv/
 *.yaml
 !config.yaml
 !aws_config.yaml
+!azure_config.yaml
 *-global-reports-*/
 *-aws-reports-*/
+*-azure-reports-*/

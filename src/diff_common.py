@@ -4,7 +4,12 @@ import logging
 import os
 import yaml
 
-from diff_config import YAML_CONFIG_PATH, AWS_YAML_CONFIG_PATH, API_URLS
+from diff_config import (
+    YAML_CONFIG_PATH,
+    AWS_YAML_CONFIG_PATH,
+    AZURE_YAML_CONFIG_PATH,
+    API_URLS
+)
 
 BOLD = "\033[1m"
 RED = "\033[31m"
@@ -71,12 +76,14 @@ class DiffCommon:
 
         self.log = logging.getLogger(__name__)
 
-    def load_config_diff_report(self, aws=False):
+    def load_config_diff_report(self, aws=False, azure=False):
         """
         Loads and parses the YAML configuration file for the diff report.
         Args:
             aws (bool): If True, load AWS-specific configuration.
                         Default is False.
+            azure (bool): If True, load Azure-specific configuration.
+                          Default is False.
 
         Returns:
             bool:
@@ -84,8 +91,13 @@ class DiffCommon:
                   and parsed.
                 - `False` if loading or parsing the YAML configuration fails.
         """
+        if aws and azure:
+            self.log.error("Cannot set both AWS and Azure flags to True!")
+            return False
         if aws:
             yaml_config_path = AWS_YAML_CONFIG_PATH
+        elif azure:
+            yaml_config_path = AZURE_YAML_CONFIG_PATH
         else:
             yaml_config_path = YAML_CONFIG_PATH
 

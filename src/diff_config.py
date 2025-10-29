@@ -40,7 +40,8 @@ API_URLS = {
     ),
     "monitoring-beta": (
         "https://monitoring.googleapis.com/$discovery/rest?version=v3"
-    )
+    ),
+    "azurerm-compute": "Microsoft.Compute",
 }
 
 TF_RESOURCES = {
@@ -63,3 +64,4 @@ TF_RESOURCES = {
 
 YAML_CONFIG_PATH = "./config.yaml"
 AWS_YAML_CONFIG_PATH = "./aws_config.yaml"
+AZURE_YAML_CONFIG_PATH = "./azure_config.yaml"

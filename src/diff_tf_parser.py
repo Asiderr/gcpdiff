@@ -219,6 +219,61 @@ class DiffTfParser:
                 json.dump(self.component_tf_schema, f, indent=2)
         return True
 
+    def get_azure_tf_component_schema(self, component, save_file=False):
+        if not hasattr(self, 'log'):
+            print("Error: Logger not found!")
+            return False
+
+        if not hasattr(self, 'cwd'):
+            self.log.error("Error: Current directory not set!")
+            return False
+
+        if not hasattr(self, 'terraform_versions'):
+            self.log.error("Error: Terraform versions not known!")
+            return False
+
+        if not hasattr(self, 'terraform_schemas'):
+            self.log.error("Error: Terraform schemas not set!")
+            return False
+
+        provider = "registry.terraform.io/hashicorp/azurerm"
+        self.tf_resource_name = component
+
+        try:
+            self.tf_provider_version = (
+                self.terraform_versions["provider_selections"][provider]
+            ).replace(".", "-")
+            self.log.debug(f"{provider} version: {self.tf_provider_version}")
+        except KeyError:
+            self.log.error(f"The version of {provider} not known!")
+            return False
+
+        try:
+            self.component_tf_schema = self._snake_to_camel_schema(
+                self.terraform_schemas[
+                    "provider_schemas"][
+                    provider][
+                    "resource_schemas"][
+                    self.tf_resource_name]
+            )
+        except KeyError:
+            self.log.debug(f"The specified {self.tf_resource_name} not found"
+                           " in the schema.")
+            return False
+
+        if save_file:
+            file_name = os.path.join(
+                self.cwd,
+                (f"{self.tf_resource_name}_terraform_schema_"
+                 f"{round(time.time())}.json")
+            )
+            self.log.debug(
+                f"Saving {component} schema to json file {file_name}"
+            )
+            with open(file_name, "w") as f:
+                json.dump(self.component_tf_schema, f, indent=2)
+        return True
+
     def get_tf_component_schema(self, component, api, save_file=False):
         """
         Retrieves and processes the Terraform schema for a specific component.
