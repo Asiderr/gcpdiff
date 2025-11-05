@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# Copyright 2025 Norbert Kamiński <norbert.kaminski@infogain.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 import json
 import jsonref
@@ -310,7 +315,9 @@ class DiffApiParser:
             pass
 
         try:
-            for key, value in value_origin["items"]["oneOf"][0]["properties"].items():
+            for key, value in (
+                value_origin["items"]["oneOf"][0]["properties"].items()
+            ):
                 self._get_azure_api_field(key_appendix+key, value)
             nested = True
         except KeyError:
