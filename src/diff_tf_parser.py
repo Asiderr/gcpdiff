@@ -116,7 +116,7 @@ class DiffTfParser:
 
     def _camel_to_pascal_string(self, camel):
         """
-        Converts a camelCase string to PascalCase.
+        Converts a camelCase string segments split by '.' to PascalCase.
 
         Args:
             camel (str): The string in camelCase format to be converted.
@@ -225,6 +225,20 @@ class DiffTfParser:
         return True
 
     def get_azure_tf_component_schema(self, component, save_file=False):
+        """
+        Retrieves and processes the Terraform schema for a specific Azure
+        component.
+        Args:
+            component (str): The name of the Terraform component
+                             (e.g., "instance") for which the
+                             schema is retrieved.
+            save_file (bool, optional): If `True`, the retrieved schema will
+                                        be saved to a JSON file. Defaults to
+                                        `False`.
+        Returns:
+            bool: Returns `True` if the schema retrieval and processing were
+                  successful, otherwise `False`.
+        """
         if not hasattr(self, 'log'):
             print("Error: Logger not found!")
             return False

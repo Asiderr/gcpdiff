@@ -170,7 +170,7 @@ class DiffApiParser:
         if save_file:
             file_name = os.path.join(
                 self.cwd,
-                (f"{component}_aws_api_{round(time.time())}.json")
+                (f"{component}_azure_api_{round(time.time())}.json")
             )
             self.log.debug(
                 f"Saving {component} schema to json file {file_name}"
