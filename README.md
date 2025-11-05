@@ -134,7 +134,7 @@ gcpdiff/src/diff_api_compare.py -h
   `--api {compute,compute-beta,gke-std,gke-std-beta,gke-ent,gke-backup}`:
                                           The Google API that will be analyzed
 
-> For know analysis only GCP compute API
+> For now this tool works only for GCP compute API
 
 #### Optional arguments
 
@@ -204,6 +204,6 @@ gcpdiff/src/diff_azure_report.py -h
 #### Examples
 
 ```bash
-gcpdiff/src/diff_azure_report.py -t /path/to/terraform/config -a azurerm-compute -p /path/to/aws/api/schemas
+gcpdiff/src/diff_azure_report.py -t /path/to/terraform/config -a azurerm-compute -p /path/to/azure/api/schemas
 ```
 ```

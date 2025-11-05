@@ -153,14 +153,15 @@ class DiffGlobalReport(DiffReport):
                                  self.eliminated_gaps,
                                  self.remaining_gaps])
 
-        total_api_specific_fiels = (
+        total_api_specific_fields = (
             total_fields_number - total_api_missing - total_api_implemented
         )
 
         self.log.info("Number of resources analyzed:"
                       f" {len(matching_schemas)}")
         self.log.info(f"Total fields number: {total_fields_number}")
-        self.log.info(f"Total api specific fields: {total_api_specific_fiels}")
+        self.log.info("Total api specific fields: "
+                      f"{total_api_specific_fields}")
         self.log.info(f"Total api implemented: {total_api_implemented}")
         self.log.info(f"Total api missing: {total_api_missing}")
 
