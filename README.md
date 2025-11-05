@@ -13,6 +13,9 @@ as JSON files.
 - **Generate a detailed diff report** of the comparison.
 - Option to **save API and Terraform component schemas** as JSON files.
 - **Compare the newest report with an old one** to track changes over time.
+- **Compare V1 and beta terraform fields**.
+- **Compare AWS EC2 API fields** with the corresponding Terraform fields.
+- **Compare Azure RM API fields** with the corresponding Terraform fields.
 
 ## Installation
 
@@ -113,4 +116,94 @@ Create global report for GKE Enterprise API:
 gcpdiff/src/diff_global_report.py -t /path/to/terraform/config -a gke-ent
 ```
 
+### V1 and beta GCP compute API comparison report
 
+Compares V1 and Beta GCP Compute terraform fields.
+
+To use the tool, run the following command:
+
+```bash
+gcpdiff/src/diff_api_compare.py -h
+```
+
+#### Required arguments
+
+* `-t TERRAFORM_CONFIG`, `--terraform_config` TERRAFORM_CONFIG
+                        Path to the terraform config main.tf file
+* `-a {compute,compute-beta,gke-std,gke-std-beta,gke-ent,gke-backup}`,
+  `--api {compute,compute-beta,gke-std,gke-std-beta,gke-ent,gke-backup}`:
+                                          The Google API that will be analyzed
+
+> For know analysis only GCP compute API
+
+#### Optional arguments
+
+* `-s, --save_file`: Save the API and Terraform component schemas as JSON files.
+* `-v, --verbose`: Increase the log verbosity level.
+* `-h, --help`: Show the help message and exit.
+
+#### Examples
+
+Create comparison between V1 and beta for GCP Compute API:
+
+```bash
+gcpdiff/src/diff_api_compare.py -t /path/to/terraform/config -a compute-beta
+```
+
+### Global diff report for AWS
+
+To use the tool, run the following command:
+
+```bash
+gcpdiff/src/diff_aws_report.py -h
+```
+
+#### Required arguments
+
+* `-t TERRAFORM_CONFIG`, `--terraform_config` TERRAFORM_CONFIG
+    Path to the terraform config main.tf file
+* `-p BASE_API_SCHEMA_PATH`, `--base_api_schema_path BASE_API_SCHEMA_PATH`
+    Base path to the API schemas files
+
+#### Optional arguments
+
+* `-s, --save_file`: Save the API and Terraform component schemas as JSON files.
+* `-v, --verbose`: Increase the log verbosity level.
+* `-h, --help`: Show the help message and exit.
+
+#### Examples
+
+```bash
+gcpdiff/src/diff_aws_report.py -t /path/to/terraform/config -p /path/to/aws/api/schemas
+```
+
+### Global diff report for Azure Resource Manager
+
+To use the tool, run the following command:
+
+```bash
+gcpdiff/src/diff_azure_report.py -h
+```
+
+#### Required arguments
+
+* `-t TERRAFORM_CONFIG`, `--terraform_config` TERRAFORM_CONFIG
+    Path to the terraform config main.tf file
+* `-a {compute,compute-beta,gke-std,gke-std-beta,gke-ent,gke-backup}`,
+  `--api {compute,compute-beta,gke-std,gke-std-beta,gke-ent,gke-backup}`:
+                                          The Google API that will be analyzed
+* `-p BASE_API_SCHEMA_PATH`, `--base_api_schema_path BASE_API_SCHEMA_PATH`
+    Base path to the API schemas files
+
+#### Optional arguments
+
+* `-s, --save_file`: Save the API and Terraform component schemas as JSON files.
+* `-v, --verbose`: Increase the log verbosity level.
+* `-h, --help`: Show the help message and exit.
+
+#### Examples
+
+```bash
+gcpdiff/src/diff_azure_report.py -t /path/to/terraform/config -a azurerm-compute -p /path/to/aws/api/schemas
+```
+```

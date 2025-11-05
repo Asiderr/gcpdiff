@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# Copyright 2025 Norbert Kamiński <norbert.kaminski@infogain.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 API_URLS = {
     "compute": "https://www.googleapis.com/discovery/v1/apis/compute/v1/rest",
@@ -30,7 +35,8 @@ API_URLS = {
         "https://aiplatform.googleapis.com/$discovery/rest?version=v1beta1"
     ),
     "networkservices-beta": (
-        "https://networkservices.googleapis.com/$discovery/rest?version=v1beta1"
+        "https://networkservices.googleapis.com/$discovery"
+        "/rest?version=v1beta1"
     ),
     "logging-beta": (
         "https://logging.googleapis.com/$discovery/rest?version=v2"

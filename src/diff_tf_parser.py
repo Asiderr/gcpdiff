@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# Copyright 2025 Norbert Kamiński <norbert.kaminski@infogain.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 import json
 import os
