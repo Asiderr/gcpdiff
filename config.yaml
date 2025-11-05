@@ -80,6 +80,36 @@ InstanceGroup:
   Mapping:
     namedPort: namedPorts
 
+FutureReservation:
+  ExactMapping:
+    shareSettings.projectMap: shareSettings.projectMap.id
+  Exclude:
+  - aggregateReservation.inUseResources.accelerator.acceleratorCount
+  - aggregateReservation.inUseResources.accelerator.acceleratorType
+  - status.specificSkuProperties.sourceInstanceTemplateId
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.machineType
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.guestAccelerators.acceleratorType
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.guestAccelerators.acceleratorCount
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.minCpuPlatform
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.localSsds.diskSizeGb
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.localSsds.interface
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.maintenanceFreezeDurationHours
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.locationHint
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.instanceProperties.maintenanceInterval
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.totalCount
+  - status.lastKnownGoodState.futureReservationSpecs.specificSkuProperties.sourceInstanceTemplate
+  - status.lastKnownGoodState.futureReservationSpecs.timeWindow.endTime
+  - status.lastKnownGoodState.futureReservationSpecs.timeWindow.duration.seconds
+  - status.lastKnownGoodState.futureReservationSpecs.timeWindow.duration.nanos
+  - status.lastKnownGoodState.futureReservationSpecs.timeWindow.startTime
+  - status.lastKnownGoodState.futureReservationSpecs.shareSettings.shareType
+  - status.lastKnownGoodState.futureReservationSpecs.shareSettings.projects
+  - status.lastKnownGoodState.futureReservationSpecs.shareSettings.projectMap
+  - status.lastKnownGoodState.existingMatchingUsageInfo.count
+  - status.lastKnownGoodState.existingMatchingUsageInfo.timestamp
+  - status.existingMatchingUsageInfo.count
+  - status.existingMatchingUsageInfo.timestamp
+
 Reservation:
   ExactMapping:
    shareSettings.projectMap: shareSettings.projectMap.id
@@ -120,6 +150,24 @@ SecurityPolicy:
   - userDefinedFields.size # RegionSecurityPolicy
   - userDefinedFields.mask # RegionSecurityPolicy
   - adaptiveProtectionConfig.layer7DdosDefenseConfig.thresholdConfigs.trafficGranularityConfigs.value # Implemented
+  - rules.match.config.destIpRanges # depracated
+  - rules.match.config.layer4Configs.ipProtocol # depracated
+  - rules.match.config.layer4Configs.ports # depracated
+  - rules.direction # depracated
+  - rules.targetResources # depracated
+  - rules.enableLogging # depracated
+  - rules.targetServiceAccounts # depracated
+  - displayName # depracated
+  - rules.networkMatch.userDefinedFields.name # RegionSecurityPolicy
+  - rules.networkMatch.userDefinedFields.values # RegionSecurityPolicy
+  - rules.networkMatch.srcIpRanges # RegionSecurityPolicy
+  - rules.networkMatch.destIpRanges # RegionSecurityPolicy
+  - rules.networkMatch.ipProtocols # RegionSecurityPolicy
+  - rules.networkMatch.srcPorts # RegionSecurityPolicy
+  - rules.networkMatch.destPorts # RegionSecurityPolicy
+  - rules.networkMatch.srcRegionCodes # RegionSecurityPolicy
+  - rules.networkMatch.srcAsns # RegionSecurityPolicy
+  - ddosProtectionConfig.ddosProtection # RegionSecurityPolicy
 
 SecurityPolicyRule:
   Mapping:
@@ -132,6 +180,23 @@ SecurityPolicyRule:
     requestUri: requestUrisToExclude
   Exclude:
   - kind
+  - ruleTupleCount
+  - match.config.destIpRanges    # depracated
+  - match.config.layer4Configs.ipProtocol # depracated
+  - match.config.layer4Configs.ports  # depracated
+  - networkMatch.userDefinedFields.name  # regional (implemented)
+  - networkMatch.userDefinedFields.values  # regional (implemented)
+  - networkMatch.srcIpRanges    # regional (implemented)
+  - networkMatch.destIpRanges    # regional (implemented)
+  - networkMatch.ipProtocols    # regional (implemented)
+  - networkMatch.srcPorts      # regional (implemented)
+  - networkMatch.destPorts    # regional (implemented)
+  - networkMatch.srcRegionCodes    # regional (implemented)
+  - networkMatch.srcAsns      # regional (implemented)
+  - direction        # depracated
+  - targetResources      # depracated
+  - enableLogging        # depracated
+  - targetServiceAccounts      # depracated
 
 InterconnectAttachment:
   Exclude:
