@@ -11,7 +11,7 @@ as JSON files.
 1. Download diff tool
 
 ```bash
-git clone https://github.com/Asiderr/gcpdiff.git -b update_mapping
+git clone https://github.com/Asiderr/gcpdiff.git
 ```
 
 2. Intall pip requirements
@@ -245,5 +245,4 @@ gcpdiff/src/diff_azure_report.py -h
 
 ```bash
 gcpdiff/src/diff_azure_report.py -t /path/to/terraform/config -a azurerm-compute -p /path/to/azure/api/schemas
-```
 ```
