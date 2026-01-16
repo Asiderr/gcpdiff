@@ -68,6 +68,6 @@ TF_RESOURCES = {
     "monitoring-beta": "google_monitoring_"
 }
 
-YAML_CONFIG_PATH = "./config.yaml"
-AWS_YAML_CONFIG_PATH = "./aws_config.yaml"
-AZURE_YAML_CONFIG_PATH = "./azure_config.yaml"
+YAML_CONFIG_PATH = "./gcpdiff/config.yaml"
+AWS_YAML_CONFIG_PATH = "./gcpdiff/aws_config.yaml"
+AZURE_YAML_CONFIG_PATH = "./gcpdiff/azure_config.yaml"

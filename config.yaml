@@ -81,6 +81,13 @@ Image:
   - sourceDiskEncryptionKey.sha256
   - sourceImageEncryptionKey.sha256
   - sourceSnapshotEncryptionKey.sha256
+  - deprecated.replacement
+  - deprecated.stateOverride.locationRolloutPolicies
+  - deprecated.stateOverride.defaultRolloutTime
+  - deprecated.obsolete
+  - deprecated.deleted
+  - deprecated.state
+  - deprecated.deprecated
 
 InstanceGroup:
   Mapping:
@@ -115,6 +122,9 @@ FutureReservation:
   - status.lastKnownGoodState.existingMatchingUsageInfo.timestamp
   - status.existingMatchingUsageInfo.count
   - status.existingMatchingUsageInfo.timestamp
+  - aggregateReservation.inUseInstanceCount
+  - aggregateReservation.hostCount
+  - aggregateReservation.inUseHostCount
 
 Reservation:
   ExactMapping:
@@ -136,6 +146,15 @@ Reservation:
   - aggregateReservation.inUseResources.accelerator.acceleratorType
   - resourceStatus.reservationBlockCount
   - reservationMode
+  - resourceStatus.reservationMaintenance.subblockInfraMaintenancePendingCount
+  - resourceStatus.reservationMaintenance.subblockInfraMaintenanceOngoingCount
+  - resourceStatus.reservationMaintenance.instanceMaintenanceOngoingCount
+  - resourceStatus.reservationMaintenance.instanceMaintenancePendingCount
+  - resourceStatus.reservationMaintenance.upcomingGroupMaintenance.maintenanceReasons
+  - resourceStatus.healthInfo.healthyBlockCount
+  - resourceStatus.healthInfo.healthStatus
+  - resourceStatus.healthInfo.degradedBlockCount
+
 
 SecurityPolicy:
   Mapping:
@@ -204,12 +223,31 @@ SecurityPolicyRule:
   - enableLogging        # depracated
   - targetServiceAccounts      # depracated
 
+InterconnectGroup:
+  ExactMapping:
+    interconnects: interconnects.interconnect
+  Exclude:
+  - etag
+  - configured.topologyCapability.intendedCapabilityBlockers.blockerType
+  - configured.topologyCapability.supportedSla
+
+InterconnectAttachmentGroup:
+  ExactMapping:
+    attachments: attachments.attachment
+  Exclude:
+  - etag
+  - configured.availabilitySla.intendedSlaBlockers.blockerType
+  - configured.availabilitySla.effectiveSla
+
 InterconnectAttachment:
   Exclude:
   - cloudRouterIpv6InterfaceId
   - customerRouterIpv6InterfaceId
   - configurationConstraints.bgpPeerAsnRanges.min
   - configurationConstraints.bgpPeerAsnRanges.max
+  - partnerMetadata.interconnectName
+  - partnerMetadata.partnerName
+  - partnerMetadata.portalUrl
 
 ExternalVpnGateway:
   Mapping:
@@ -224,6 +262,11 @@ ForwardingRule:
     - metadataFilters.filterLabels.name # GlobalForwardingRule
     - metadataFilters.filterLabels.value # GlobalForwardingRule
     - serviceDirectoryRegistrations.serviceDirectoryRegion # GlobalForwardingRule
+    - allowPscPacketInjection
+
+HealthCheck:
+  Exclude:
+  - kind
 
 HttpsHealthCheck:
   Exclude:
@@ -347,6 +390,33 @@ Instance:
   - privateIpv6GoogleAccess
   - satisfiesPzs
   - satisfiesPzi
+  - resourceStatus.shutdownDetails.maxDuration.seconds
+  - resourceStatus.shutdownDetails.maxDuration.nanos
+  - resourceStatus.shutdownDetails.targetState
+  - resourceStatus.shutdownDetails.requestTimestamp
+  - resourceStatus.shutdownDetails.stopState
+  - resourceStatus.upcomingMaintenance.latestWindowStartTime
+  - resourceStatus.upcomingMaintenance.maintenanceOnShutdown
+  - resourceStatus.upcomingMaintenance.type
+  - resourceStatus.upcomingMaintenance.canReschedule
+  - resourceStatus.upcomingMaintenance.windowEndTime
+  - resourceStatus.upcomingMaintenance.windowStartTime
+  - resourceStatus.upcomingMaintenance.maintenanceStatus
+  - resourceStatus.upcomingMaintenance.maintenanceReasons
+  - resourceStatus.effectiveInstanceMetadata.blockProjectSshKeysMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.vmDnsSettingMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.serialPortLoggingEnableMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.serialPortEnableMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.enableOsloginMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.enableGuestAttributesMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.enableOsconfigMetadataValue
+  - resourceStatus.effectiveInstanceMetadata.enableOsInventoryMetadataValue
+  - resourceStatus.scheduling.availabilityDomain
+  - resourceStatus.scheduling.terminationTimestamp
+  - metadata.items.key
+  - params.requestValidForDuration.seconds
+  - params.requestValidForDuration.nanos
+  - postKeyRevocationActionType
 
 Disk:
   Mapping:
@@ -373,6 +443,7 @@ Disk:
   - sourceConsistencyGroupPolicy
   - sourceConsistencyGroupPolicyId
   - sourceInstantSnapshotId
+  - storageType
 
 Snapshot:
   Mapping:
@@ -450,6 +521,19 @@ Network:
   - peerings.connectionStatus.consensusState.deleteStatus
   - peerings.connectionStatus.consensusState.updateStatus
 
+NetworkPeering:
+  Exclude:
+  - connectionStatus.trafficConfiguration.exportSubnetRoutesWithPublicIpToPeer
+  - connectionStatus.trafficConfiguration.importSubnetRoutesWithPublicIpFromPeer
+  - connectionStatus.trafficConfiguration.stackType
+  - connectionStatus.trafficConfiguration.exportCustomRoutesToPeer
+  - connectionStatus.trafficConfiguration.importCustomRoutesFromPeer
+  - connectionStatus.consensusState.updateStatus
+  - connectionStatus.consensusState.deleteStatus
+  - connectionStatus.updateStrategy
+  - autoCreateRoutes
+  - exchangeSubnetRoutes
+
 NetworkEdgeSecurityService:
   Exclude:
   - kind
@@ -459,6 +543,24 @@ NetworkEndpointGroups:
   - loadBalancer.network
   - loadBalancer.subnetwork
   - loadBalancer.defaultPort
+  - appEngine.version
+  - appEngine.service
+  - appEngine.urlMask
+  - pscData.producerPort
+  - pscTargetService
+  - cloudFunction.function
+  - cloudFunction.urlMask
+  - annotations
+  - serverlessDeployment.version
+  - serverlessDeployment.urlMask
+  - serverlessDeployment.resource
+  - serverlessDeployment.platform
+  - loadBalancer.subnetwork
+  - loadBalancer.defaultPort
+  - loadBalancer.network
+  - cloudRun.service
+  - cloudRun.tag
+  - cloudRun.urlMask
 
 NodeGroup:
   ExactMapping:
@@ -467,6 +569,8 @@ NodeGroup:
   - status
   - fingerprint
   - locationHint
+  - maintenanceWindow.maintenanceDuration.nanos
+  - maintenanceWindow.maintenanceDuration.seconds
 
 PublicAdvertisedPrefix:
   Exclude:
@@ -501,6 +605,16 @@ Router:
     RouterPeer: bgpPeers
     RouterNat: nats
     RouterInterface: interfaces
+  Exclude:
+  - nats.subnetworks.name
+  - nats.subnetworks.sourceIpRangesToNat
+  - nats.subnetworks.secondaryIpRangeNames
+  - nats.nat64Subnetworks.name
+  - bgpPeers.interfaceName
+  - bgpPeers.interfaceName
+  - bgpPeers.md5AuthenticationKeyName
+  - interfaces.linkedInterconnectAttachment
+  - interfaces.linkedVpnTunnel
 
 Route:
   Exclude:
@@ -556,6 +670,29 @@ InstanceGroupManager:
   - currentActions.abandoning
   - currentActions.restarting
   - currentActions.refreshing
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.localizedMessage.locale
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.localizedMessage.message
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.help.links.description
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.help.links.url
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.quotaInfo.limit
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.quotaInfo.metricName
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.quotaInfo.rolloutStatus
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.quotaInfo.limitName
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.quotaInfo.futureLimit
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.quotaInfo.dimensions
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.errorInfo.domain
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.errorInfo.metadatas
+  - status.bulkInstanceOperation.lastProgressCheck.error.errors.errorDetails.errorInfo.reason
+  - distributionPolicy.targetShape
+  - distributionPolicy.zones.zone
+  - updatePolicy.instanceRedistributionType
+  - failoverAction
+  - instanceFlexibilityPolicy.instanceSelections
+  - statefulPolicy.preservedState.internalIPs
+  - statefulPolicy.preservedState.externalIPs
+  - statefulPolicy.preservedState.disks
+
+
 
 FirewallPolicy:
   RelatedResources:
@@ -567,6 +704,9 @@ FirewallPolicy:
   - rules.kind
   - packetMirroringRules.kind
   - displayName
+  - packetMirroringRules.ruleName
+  - packetMirroringRules.targetType
+  - packetMirroringRules.targetForwardingRules
 
 BackendService:
   Mapping:
@@ -591,9 +731,11 @@ BackendService:
   - haPolicy.fastIPMove
   - haPolicy.leader.backendGroup
   - haPolicy.leader.networkEndpoint.instance
+  - metadatas
 
 SslCertificate:
   Exclude:
+  - type
   - managed.status
   - managed.domainStatus
 
@@ -602,8 +744,263 @@ SslPolicy:
   - kind
 
 VpnGateway:
+  RelatedResources:
+    HaVpnGateway: ha
+  ExactMapping:
+    vpnInterfaces.interconnectAttachment: ha.vpnInterfaces.interconnectAttachment
+    stackType: ha.stackType
+    labels: ha.labels
+    labelFingerprint: ha.labelFingerprint
+    gatewayIpVersion: ha.gatewayIpVersion
+
+MachineImage:
   Exclude:
+  - sourceInstanceProperties.description
+  - sourceInstanceProperties.tags.items
+  - sourceInstanceProperties.tags.fingerprint
+  - sourceInstanceProperties.machineType
+  - sourceInstanceProperties.canIpForward
+  - sourceInstanceProperties.networkInterfaces.network
+  - sourceInstanceProperties.networkInterfaces.subnetwork
+  - sourceInstanceProperties.networkInterfaces.networkIP
+  - sourceInstanceProperties.networkInterfaces.ipv6Address
+  - sourceInstanceProperties.networkInterfaces.internalIpv6PrefixLength
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.type
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.name
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.natIP
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.externalIpv6
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.externalIpv6PrefixLength
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.setPublicPtr
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.publicPtrDomainName
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.networkTier
+  - sourceInstanceProperties.networkInterfaces.accessConfigs.securityPolicy
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.type
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.name
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.natIP
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.externalIpv6
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.externalIpv6PrefixLength
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.setPublicPtr
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.publicPtrDomainName
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.networkTier
+  - sourceInstanceProperties.networkInterfaces.ipv6AccessConfigs.securityPolicy
+  - sourceInstanceProperties.networkInterfaces.aliasIpRanges.ipCidrRange
+  - sourceInstanceProperties.networkInterfaces.aliasIpRanges.subnetworkRangeName
+  - sourceInstanceProperties.networkInterfaces.fingerprint
+  - sourceInstanceProperties.networkInterfaces.stackType
+  - sourceInstanceProperties.networkInterfaces.queueCount
+  - sourceInstanceProperties.networkInterfaces.nicType
+  - sourceInstanceProperties.networkInterfaces.networkAttachment
+  - sourceInstanceProperties.networkInterfaces.parentNicName
+  - sourceInstanceProperties.networkInterfaces.vlan
+  - sourceInstanceProperties.networkInterfaces.igmpQuery
+  - sourceInstanceProperties.disks.type
+  - sourceInstanceProperties.disks.mode
+  - sourceInstanceProperties.disks.source
+  - sourceInstanceProperties.disks.deviceName
+  - sourceInstanceProperties.disks.boot
+  - sourceInstanceProperties.disks.autoDelete
+  - sourceInstanceProperties.disks.interface
+  - sourceInstanceProperties.disks.guestOsFeatures.type
+  - sourceInstanceProperties.disks.diskEncryptionKey.rawKey
+  - sourceInstanceProperties.disks.diskEncryptionKey.rsaEncryptedKey
+  - sourceInstanceProperties.disks.diskEncryptionKey.kmsKeyName
+  - sourceInstanceProperties.disks.diskEncryptionKey.sha256
+  - sourceInstanceProperties.disks.diskEncryptionKey.kmsKeyServiceAccount
+  - sourceInstanceProperties.disks.diskSizeGb
+  - sourceInstanceProperties.metadata.fingerprint
+  - sourceInstanceProperties.metadata.items.key
+  - sourceInstanceProperties.metadata.items.value
+  - sourceInstanceProperties.serviceAccounts.email
+  - sourceInstanceProperties.serviceAccounts.scopes
+  - sourceInstanceProperties.scheduling.maxRunDuration.seconds
+  - sourceInstanceProperties.scheduling.maxRunDuration.nanos
+  - sourceInstanceProperties.scheduling.terminationTime
+  - sourceInstanceProperties.scheduling.onInstanceStopAction.discardLocalSsd
+  - sourceInstanceProperties.scheduling.onHostMaintenance
+  - sourceInstanceProperties.scheduling.automaticRestart
+  - sourceInstanceProperties.scheduling.preemptible
+  - sourceInstanceProperties.scheduling.nodeAffinities.key
+  - sourceInstanceProperties.scheduling.nodeAffinities.operator
+  - sourceInstanceProperties.scheduling.nodeAffinities.values
+  - sourceInstanceProperties.scheduling.minNodeCpus
+  - sourceInstanceProperties.scheduling.locationHint
+  - sourceInstanceProperties.scheduling.maintenanceFreezeDurationHours
+  - sourceInstanceProperties.scheduling.maintenanceInterval
+  - sourceInstanceProperties.scheduling.availabilityDomain
+  - sourceInstanceProperties.scheduling.provisioningModel
+  - sourceInstanceProperties.scheduling.instanceTerminationAction
+  - sourceInstanceProperties.scheduling.hostErrorTimeoutSeconds
+  - sourceInstanceProperties.scheduling.gracefulShutdown.enabled
+  - sourceInstanceProperties.scheduling.gracefulShutdown.maxDuration.seconds
+  - sourceInstanceProperties.scheduling.gracefulShutdown.maxDuration.nanos
+  - sourceInstanceProperties.scheduling.localSsdRecoveryTimeout.seconds
+  - sourceInstanceProperties.scheduling.localSsdRecoveryTimeout.nanos
+  - sourceInstanceProperties.scheduling.skipGuestOsShutdown
+  - sourceInstanceProperties.labels
+  - sourceInstanceProperties.guestAccelerators.acceleratorType
+  - sourceInstanceProperties.guestAccelerators.acceleratorCount
+  - sourceInstanceProperties.minCpuPlatform
+  - sourceInstanceProperties.deletionProtection
+  - sourceInstanceProperties.postKeyRevocationActionType
+  - sourceInstanceProperties.keyRevocationActionType
+  - instanceProperties.description
+  - instanceProperties.tags.items
+  - instanceProperties.tags.fingerprint
+  - instanceProperties.resourceManagerTags
+  - instanceProperties.machineType
+  - instanceProperties.canIpForward
+  - instanceProperties.networkInterfaces.network
+  - instanceProperties.networkInterfaces.subnetwork
+  - instanceProperties.networkInterfaces.networkIP
+  - instanceProperties.networkInterfaces.ipv6Address
+  - instanceProperties.networkInterfaces.internalIpv6PrefixLength
+  - instanceProperties.networkInterfaces.accessConfigs.type
+  - instanceProperties.networkInterfaces.accessConfigs.name
+  - instanceProperties.networkInterfaces.accessConfigs.natIP
+  - instanceProperties.networkInterfaces.accessConfigs.externalIpv6
+  - instanceProperties.networkInterfaces.accessConfigs.externalIpv6PrefixLength
+  - instanceProperties.networkInterfaces.accessConfigs.setPublicPtr
+  - instanceProperties.networkInterfaces.accessConfigs.publicPtrDomainName
+  - instanceProperties.networkInterfaces.accessConfigs.networkTier
+  - instanceProperties.networkInterfaces.accessConfigs.securityPolicy
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.type
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.name
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.natIP
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.externalIpv6
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.externalIpv6PrefixLength
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.setPublicPtr
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.publicPtrDomainName
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.networkTier
+  - instanceProperties.networkInterfaces.ipv6AccessConfigs.securityPolicy
+  - instanceProperties.networkInterfaces.aliasIpRanges.ipCidrRange
+  - instanceProperties.networkInterfaces.aliasIpRanges.subnetworkRangeName
+  - instanceProperties.networkInterfaces.fingerprint
+  - instanceProperties.networkInterfaces.stackType
+  - instanceProperties.networkInterfaces.queueCount
+  - instanceProperties.networkInterfaces.nicType
+  - instanceProperties.networkInterfaces.networkAttachment
+  - instanceProperties.networkInterfaces.parentNicName
+  - instanceProperties.networkInterfaces.vlan
+  - instanceProperties.networkInterfaces.igmpQuery
+  - instanceProperties.disks.type
+  - instanceProperties.disks.mode
+  - instanceProperties.disks.source
+  - instanceProperties.disks.deviceName
+  - instanceProperties.disks.boot
+  - instanceProperties.disks.initializeParams.diskName
+  - instanceProperties.disks.initializeParams.sourceImage
+  - instanceProperties.disks.initializeParams.diskSizeGb
+  - instanceProperties.disks.initializeParams.diskType
+  - instanceProperties.disks.initializeParams.sourceImageEncryptionKey.rawKey
+  - instanceProperties.disks.initializeParams.sourceImageEncryptionKey.rsaEncryptedKey
+  - instanceProperties.disks.initializeParams.sourceImageEncryptionKey.kmsKeyName
+  - instanceProperties.disks.initializeParams.sourceImageEncryptionKey.sha256
+  - instanceProperties.disks.initializeParams.sourceImageEncryptionKey.kmsKeyServiceAccount
+  - instanceProperties.disks.initializeParams.labels
+  - instanceProperties.disks.initializeParams.sourceSnapshot
+  - instanceProperties.disks.initializeParams.sourceInstantSnapshot
+  - instanceProperties.disks.initializeParams.sourceSnapshotEncryptionKey.rawKey
+  - instanceProperties.disks.initializeParams.sourceSnapshotEncryptionKey.rsaEncryptedKey
+  - instanceProperties.disks.initializeParams.sourceSnapshotEncryptionKey.kmsKeyName
+  - instanceProperties.disks.initializeParams.sourceSnapshotEncryptionKey.sha256
+  - instanceProperties.disks.initializeParams.sourceSnapshotEncryptionKey.kmsKeyServiceAccount
+  - instanceProperties.disks.initializeParams.description
+  - instanceProperties.disks.initializeParams.replicaZones
+  - instanceProperties.disks.initializeParams.guestOsFeatures.type
+  - instanceProperties.disks.initializeParams.resourcePolicies
+  - instanceProperties.disks.initializeParams.onUpdateAction
+  - instanceProperties.disks.initializeParams.provisionedIops
+  - instanceProperties.disks.initializeParams.multiWriter
+  - instanceProperties.disks.initializeParams.licenses
+  - instanceProperties.disks.initializeParams.architecture
+  - instanceProperties.disks.initializeParams.resourceManagerTags
+  - instanceProperties.disks.initializeParams.provisionedThroughput
+  - instanceProperties.disks.initializeParams.enableConfidentialCompute
+  - instanceProperties.disks.initializeParams.storagePool
+  - instanceProperties.disks.autoDelete
+  - instanceProperties.disks.interface
+  - instanceProperties.disks.guestOsFeatures.type
+  - instanceProperties.disks.diskEncryptionKey.rawKey
+  - instanceProperties.disks.diskEncryptionKey.rsaEncryptedKey
+  - instanceProperties.disks.diskEncryptionKey.kmsKeyName
+  - instanceProperties.disks.diskEncryptionKey.sha256
+  - instanceProperties.disks.diskEncryptionKey.kmsKeyServiceAccount
+  - instanceProperties.disks.diskSizeGb
+  - instanceProperties.disks.shieldedInstanceInitialState.pk.content
+  - instanceProperties.disks.shieldedInstanceInitialState.pk.fileType
+  - instanceProperties.disks.shieldedInstanceInitialState.keks.content
+  - instanceProperties.disks.shieldedInstanceInitialState.keks.fileType
+  - instanceProperties.disks.shieldedInstanceInitialState.dbs.content
+  - instanceProperties.disks.shieldedInstanceInitialState.dbs.fileType
+  - instanceProperties.disks.shieldedInstanceInitialState.dbxs.content
+  - instanceProperties.disks.shieldedInstanceInitialState.dbxs.fileType
+  - instanceProperties.disks.forceAttach
+  - instanceProperties.metadata.fingerprint
+  - instanceProperties.metadata.items.key
+  - instanceProperties.metadata.items.value
+  - instanceProperties.serviceAccounts.email
+  - instanceProperties.serviceAccounts.scopes
+  - instanceProperties.scheduling.maxRunDuration.seconds
+  - instanceProperties.scheduling.maxRunDuration.nanos
+  - instanceProperties.scheduling.terminationTime
+  - instanceProperties.scheduling.onInstanceStopAction.discardLocalSsd
+  - instanceProperties.scheduling.onHostMaintenance
+  - instanceProperties.scheduling.automaticRestart
+  - instanceProperties.scheduling.preemptible
+  - instanceProperties.scheduling.nodeAffinities.key
+  - instanceProperties.scheduling.nodeAffinities.operator
+  - instanceProperties.scheduling.nodeAffinities.values
+  - instanceProperties.scheduling.minNodeCpus
+  - instanceProperties.scheduling.locationHint
+  - instanceProperties.scheduling.maintenanceFreezeDurationHours
+  - instanceProperties.scheduling.maintenanceInterval
+  - instanceProperties.scheduling.availabilityDomain
+  - instanceProperties.scheduling.provisioningModel
+  - instanceProperties.scheduling.instanceTerminationAction
+  - instanceProperties.scheduling.hostErrorTimeoutSeconds
+  - instanceProperties.scheduling.gracefulShutdown.enabled
+  - instanceProperties.scheduling.gracefulShutdown.maxDuration.seconds
+  - instanceProperties.scheduling.gracefulShutdown.maxDuration.nanos
+  - instanceProperties.scheduling.localSsdRecoveryTimeout.seconds
+  - instanceProperties.scheduling.localSsdRecoveryTimeout.nanos
+  - instanceProperties.scheduling.skipGuestOsShutdown
+  - instanceProperties.labels
+  - instanceProperties.guestAccelerators.acceleratorType
+  - instanceProperties.guestAccelerators.acceleratorCount
+  - instanceProperties.minCpuPlatform
+  - instanceProperties.shieldedVmConfig.enableSecureBoot
+  - instanceProperties.shieldedVmConfig.enableVtpm
+  - instanceProperties.shieldedVmConfig.enableIntegrityMonitoring
+  - instanceProperties.reservationAffinity.consumeReservationType
+  - instanceProperties.reservationAffinity.key
+  - instanceProperties.reservationAffinity.values
+  - instanceProperties.shieldedInstanceConfig.enableSecureBoot
+  - instanceProperties.shieldedInstanceConfig.enableVtpm
+  - instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
+  - instanceProperties.displayDevice.enableDisplay
+  - instanceProperties.resourcePolicies
+  - instanceProperties.confidentialInstanceConfig.enableConfidentialCompute
+  - instanceProperties.confidentialInstanceConfig.confidentialInstanceType
+  - instanceProperties.postKeyRevocationActionType
+  - instanceProperties.privateIpv6GoogleAccess
+  - instanceProperties.advancedMachineFeatures.enableNestedVirtualization
+  - instanceProperties.advancedMachineFeatures.threadsPerCore
+  - instanceProperties.advancedMachineFeatures.visibleCoreCount
+  - instanceProperties.advancedMachineFeatures.enableUefiNetworking
+  - instanceProperties.advancedMachineFeatures.performanceMonitoringUnit
+  - instanceProperties.advancedMachineFeatures.turboMode
+  - instanceProperties.networkPerformanceConfig.totalEgressBandwidthTier
+  - instanceProperties.keyRevocationActionType
+  - instanceProperties.partnerMetadata
+  - machineImageEncryptionKey.rsaEncryptedKey
+  - labels
   - labelFingerprint
+  - sourceDiskEncryptionKeys.sourceDisk
+  - sourceDiskEncryptionKeys.diskEncryptionKey.rawKey
+  - sourceDiskEncryptionKeys.diskEncryptionKey.rsaEncryptedKey
+  - sourceDiskEncryptionKeys.diskEncryptionKey.kmsKeyName
+  - sourceDiskEncryptionKeys.diskEncryptionKey.sha256
+  - sourceDiskEncryptionKeys.diskEncryptionKey.kmsKeyServiceAccount
 
 UrlMap:
   Mapping:
@@ -622,3 +1019,26 @@ TargetSslProxy:
 TargetTcpProxy:
   Mapping:
     backendService: service
+
+WireGroup:
+  Exclude:
+  - wires.wireProperties.faultResponse
+  - wires.wireProperties.bandwidthUnmetered
+  - wires.wireProperties.bandwidthAllocation
+  - wires.endpoints.vlanTag
+  - wires.endpoints.interconnect
+  - endpoints
+
+PreviewFeature:
+  Exclude:
+  - kind
+  - status.releaseStatus.updateDate.year
+  - status.releaseStatus.updateDate.day
+  - status.releaseStatus.updateDate.month
+  - rolloutOperation.rolloutInput.name
+
+TargetHttpsProxy:
+  Exclude:
+  - authentication
+  - authorizationPolicy
+  - authorization

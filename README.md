@@ -6,6 +6,46 @@ and `terraform-provider-google-beta`. It generates a detailed report showing
 the differences and can optionally save the API and Terraform component schemas
 as JSON files.
 
+## Quick start
+
+1. Download diff tool
+
+```bash
+git clone https://github.com/Asiderr/gcpdiff.git -b update_mapping
+```
+
+2. Intall pip requirements
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r gcpdiff/requirements.txt
+```
+
+3. Create main.tf
+```t
+terraform {
+  required_providers {
+    google = {
+      source = "hashicorp/google"
+    }
+    google-beta = {
+      source = "hashicorp/google-beta"
+    }
+  }
+}
+```
+
+4. Run initialize terraform
+```bash
+terraform init
+```
+
+5. Generate reports for GCP compute-beta
+```bash
+gcpdiff/src/diff_global_report.py -t . -a compute-beta
+```
+
 ## Features
 
 - **Compare GCP API fields** with the corresponding Terraform fields.
